@@ -50,8 +50,6 @@ fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_siz
     .collect::<Vec<FrequencySpectrum>>()
 }
 
-use std::fs::File;
-use std::io::Write;
 fn main() {
     let waveform = import_sound_file("musictests/olddiscjing.mp3");
     let samples = waveform.to_interleaved_samples();
@@ -69,16 +67,16 @@ fn main() {
     let test2 = create_spectrum(samples, waveform.frame_rate_hz(), 4096, 1024);
     println!("{} {}", test1.len(), test2.len());
 
-
-    // Open a file in write-only (ignoring errors).
-    // This creates the file if it does not exist (and empty the file if it exists).
-    let mut file = File::create("testtttt").unwrap();
-
+    let width = test2.len() as u32;
+    let height = test2[0].data().iter().count() as u32;
+    let mut bytes: Vec<u8> = Vec::new();
     // Write a &str in the file (ignoring the result).
     for spectr in test2 {
         for (_, fr_val) in spectr.data().iter() {
-            write!(&mut file, "{}, ", (fr_val.val() * 256.0) as u8).unwrap();
+            bytes.push((fr_val.val() * 256.0*128.0) as u8);
+            bytes.push(0);
+            bytes.push(0);
         }
-        writeln!(&mut file, "").unwrap();
     }
+    image::save_buffer("image.png", &bytes, height, width, image::ColorType::Rgb8).unwrap()
 }

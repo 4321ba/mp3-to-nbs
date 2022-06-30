@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 babycat = "0.0.14"
 spectrum-analyzer = "1.2.5"
+image = "0.24.2"
