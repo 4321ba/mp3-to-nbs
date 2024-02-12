@@ -1,3 +1,5 @@
+mod cli;
+
 fn max_of_slice(slice: &[f32]) -> &f32 {
     slice
         .iter()
@@ -20,9 +22,12 @@ fn import_sound_file(filename: &str) -> Waveform {
     waveform
 }
 
+use clap::Parser;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectrum};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::scaling::divide_by_N;
+
+use crate::cli::Args;
 fn transform_fourier(samples: &[f32], sampling_rate: u32) -> FrequencySpectrum {
     // apply hann window for smoothing; length must be a power of 2 for the FFT
     // 2048 is a good starting point with 44100 kHz
@@ -51,7 +56,10 @@ fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_siz
 }
 
 fn main() {
-    let waveform = import_sound_file("musictests/olddiscjing.mp3");
+    // Argument parsing
+    let args = Args::parse();
+
+    let waveform = import_sound_file(&args.input_file);
     let samples = waveform.to_interleaved_samples();
 
     println!("{:?}", &samples[105750..105800]);
