@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["--input-file", "Sounds/harp.ogg"],
             "cwd": "${workspaceFolder}"
         },
         {
