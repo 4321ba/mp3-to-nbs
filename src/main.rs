@@ -60,11 +60,12 @@ fn spectrum_to_2d_vec(spectrogram: &Vec<FrequencySpectrum>) -> Vec<Vec<f32>> {
     let width = spectrogram.len();
     let height = spectrogram[0].data().iter().count();
 
-    let mut array = vec![vec![0.0_f32; width]; height];
-    for y in 0..height {
-        for x in 0..width {
+    // we index with x first! so that it's easier to cut in the time dimension
+    let mut array = vec![vec![0.0_f32; height]; width];
+    for x in 0..width {
+        for y in 0..height {
             let frequency_value = spectrogram[x].data()[y].1;
-            array[y][x] = frequency_value.val();
+            array[x][y] = frequency_value.val();
         }
     }
     array
@@ -72,20 +73,20 @@ fn spectrum_to_2d_vec(spectrogram: &Vec<FrequencySpectrum>) -> Vec<Vec<f32>> {
 
 fn debug_save_as_image(spectrogram: &Vec<FrequencySpectrum>, filename: &str) {
 
-    let width = spectrogram.len() as u32;
-    let height = spectrogram[0].data().iter().count() as u32;
     let mut bytes: Vec<u8> = Vec::new();
     // Write a &str in the file (ignoring the result).
+    let array2d = spectrum_to_2d_vec(spectrogram);
+    let width = array2d.len();
+    let height = array2d[0].len();
     for y in (0..height).rev() {
         for x in 0..width {
-            let fr_val = spectrogram[x as usize].data()[y as usize].1;
-            let strength = (fr_val.val() * 256.0*128.0) as u8;
+            let strength = (array2d[x][y] * 256.0*16.0) as u8;
             bytes.push(strength);
             bytes.push(strength);
             bytes.push(strength);
         }
     }
-    image::save_buffer(filename, &bytes, width, height, image::ColorType::Rgb8).unwrap()
+    image::save_buffer(filename, &bytes, width as u32, height as u32, image::ColorType::Rgb8).unwrap()
 }
 
 fn debug_save_as_wav(wf: Waveform, filename: &str) {
@@ -112,6 +113,8 @@ fn main() {
     let waveform = import_sound_file(&args.input_file);
     let samples = waveform.to_interleaved_samples();
 
+    let harp_wf = import_sound_file("Sounds/harp.ogg");
+
     //println!("{:?}", &samples[105750..105800]);
     println!("{}", max_of_slice(samples));
 
@@ -130,6 +133,6 @@ fn main() {
     let test3 = create_spectrum(
         waveform_diff_pitch.to_interleaved_samples(), waveform_diff_pitch.frame_rate_hz(), 4096, 1024);
     debug_save_as_image(&test3, "image2.png");
-    //debug_save_as_wav(waveform, "wf1.wav");
-    //debug_save_as_wav(waveform_diff_pitch, "wf2.wav");
+    debug_save_as_wav(waveform, "wf1.wav");
+    debug_save_as_wav(waveform_diff_pitch, "wf2.wav");
 }
