@@ -40,11 +40,18 @@ pub struct CachedInstruments {
 pub struct Note {
     pub instrument_id: usize, // 0..INSTRUMENT_COUNT
     pub pitch: usize, // 0..PITCH_COUNT
-    pub volume: f32, // 0.0..1.0
+    pub volume: f32, // 0.0..1.0 usually, but can be bigger
 }
 
-#[path = "wave.rs"]
-mod wave;
+//pub type NoteStateSpace = [[f32; PITCH_COUNT]; INSTRUMENT_COUNT];
+pub type NoteStateSpace = Vec<f32>; // it should be PITCH_COUNT*INSTRUMENT_COUNT big
+pub fn get_volume_from_state_space(nss: &NoteStateSpace, instrument_id: usize, pitch: usize) -> f32 {
+    assert!(instrument_id < INSTRUMENT_COUNT, "Overindexing!");
+    assert!(pitch < PITCH_COUNT, "Overindexing!");
+    nss[instrument_id * INSTRUMENT_COUNT + pitch]
+}
+
+use crate::wave;
 pub fn cache_instruments() -> CachedInstruments {
     let fft_size = 4096;
     let hop_size = 1024;
@@ -61,7 +68,7 @@ pub fn cache_instruments() -> CachedInstruments {
         print!("Loading {}\n", instr_filename);
         let sample_wf = wave::import_sound_file(instr_filename);
         for pitch in 0..PITCH_COUNT {
-            let multiplier = 2.0_f64.powf((pitch as i32 - 12) as f64 / 12.0);
+            let multiplier = 2.0f64.powf((pitch as i32 - 12) as f64 / 12.0);
             cached_instruments.waveforms[instr_idx].push(wave::change_pitch(&sample_wf, multiplier as f32));
         }
     }
@@ -97,4 +104,14 @@ pub fn add_notes_together(notes: &[Note], cache: &CachedInstruments, multiplier:
     }
     assert_eq!(cache.waveforms[0][0].num_channels(), 1, "We are expecting everything to be mono for now.");
     Waveform::new(cache.waveforms[0][0].frame_rate_hz(), cache.waveforms[0][0].num_channels(), samples)
+}
+
+pub fn add_notes_together_statespace(notes: &NoteStateSpace, cache: &CachedInstruments, multiplier: f32) -> Waveform {
+    let mut notes_vec: Vec<Note> = Vec::new();
+    for instrid in 0..INSTRUMENT_COUNT {
+        for pitch in 0..PITCH_COUNT {
+            notes_vec.push(Note { instrument_id: instrid, pitch, volume: get_volume_from_state_space(notes, instrid, pitch) })
+        }
+    }
+    add_notes_together(&notes_vec, cache, multiplier)
 }
