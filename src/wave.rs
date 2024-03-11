@@ -1,7 +1,7 @@
 use babycat::{Signal, Waveform, WaveformArgs};
 pub fn import_sound_file(filename: &str) -> Waveform {
     let waveform_args = WaveformArgs {
-        convert_to_mono: true,
+        convert_to_mono: true, // We convert everything to mono for now
         ..Default::default()
     };
     let waveform = Waveform::from_file(filename, waveform_args).expect("Decoding error");

@@ -50,7 +50,7 @@ fn debug_save_as_wav(wf: &Waveform, filename: &str) {
 }
 
 use std::cmp::max;
-fn calculate_distance(song_part: &[Vec<f32>], sample: &Vec<Vec<f32>>, dist: &dyn Fn(f32, f32) -> f32) -> f32 {
+fn calculate_distance(song_part: &[Vec<f32>], sample: &Vec<Vec<f32>>, dist: &dyn Fn(f32, f32) -> f32, sample_volume: f32) -> f32 {
     let bigger_width = max(song_part.len(), sample.len());
     assert!(song_part[0].len() == sample[0].len()); // though dfferent vectors could still be different sizes
     let mut distance = 0.0_f32;
@@ -58,17 +58,19 @@ fn calculate_distance(song_part: &[Vec<f32>], sample: &Vec<Vec<f32>>, dist: &dyn
         for y in 0..song_part[0].len() {
             let song_part_val = match song_part.get(x) { Some(v) => v[y], None => 0.0 };
             let sample_val = match sample.get(x) { Some(v) => v[y], None => 0.0 };
-            distance += dist(song_part_val, sample_val/2.0); // TODO !!!!!!!!!!!!!!!!!!
+            distance += dist(song_part_val, sample_val * sample_volume);
         }
     }
     distance
 }
 
-fn calculate_assymetric_distance(song_part: &[Vec<f32>], sample: &Vec<Vec<f32>>) -> f32 {
-    calculate_distance(song_part, sample, &|sp, sa| if sp >= sa {0.0} else {(sp-sa) * (sp-sa)} )
+fn calculate_assymetric_distance(song_part: &[Vec<f32>], sample: &Vec<Vec<f32>>, sample_volume: f32) -> f32 {
+    calculate_distance(song_part, sample, &|sp, sa| if sp >= sa {0.0} else {(sp-sa) * (sp-sa)}, sample_volume)
 }
 
 fn test_distances_for_instruments(waveform: &Waveform, cache: &CachedInstruments) {
+    let mut test_found_notes: Vec<note::Note> = Vec::new();
+
     let fft_size = 4096;
     let samples = waveform.to_interleaved_samples();
     let spectrogram = wave::create_spectrum(samples, waveform.frame_rate_hz(), fft_size, 1024);
@@ -81,14 +83,24 @@ fn test_distances_for_instruments(waveform: &Waveform, cache: &CachedInstruments
             let sample_2dvec = &cache.spectrograms[instr_idx][pitch];
             debug_save_as_image(&wave::subtract_2d_vecs(song_part, &sample_2dvec), &format!("{instr_idx}_pitch{pitch:02}.png"));
 
-            let diff = calculate_assymetric_distance(song_part, &sample_2dvec);
+            let TEMP_volume = 0.5; // TODO
+            let diff = calculate_assymetric_distance(song_part, &sample_2dvec, TEMP_volume); // TODO
             
             let silence = [vec![0.0; sample_2dvec[0].len()]; 1];
-            let compensation = calculate_assymetric_distance(&silence, &sample_2dvec);
+            let compensation = calculate_assymetric_distance(&silence, &sample_2dvec, TEMP_volume); // TODO
             let compensated_val = diff / compensation;
             println!("{pitch:02}: {diff:.5}, comp:{compensation:.5}, compensated: {compensated_val:.5}");
+
+            if compensated_val < 0.015 {
+                test_found_notes.push(Note {instrument_id: instr_idx, pitch, volume: TEMP_volume});
+                println!("Added this note!");
+            }
         }
     }
+
+
+    let found_wf = note::add_notes_together(&test_found_notes, cache, 1.0);
+    debug_save_as_wav(&found_wf, "test_found_notes.wav");
 }
 
 fn test_main(waveform: &Waveform) {
@@ -119,7 +131,7 @@ fn test_main(waveform: &Waveform) {
 }
 
 use clap::Parser;
-use crate::cli::Args;
+use crate::{cli::Args, note::Note};
 fn main() {
     // Argument parsing
     let args = Args::parse();
