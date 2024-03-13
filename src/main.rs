@@ -67,8 +67,8 @@ fn main() {
     let waveform = wave::import_sound_file(&args.input_file);
     
     let cache = note::cache_instruments();
-    optimize::optimize(&cache, &waveform);
     //test_main(&waveform);
-    optimize::test_distances_for_instruments(&waveform, &cache);
-
+    let found_notes = optimize::test_distances_for_instruments(&waveform, &cache);
+    
+    optimize::optimize(&cache, &waveform, &found_notes);
 }

@@ -86,7 +86,7 @@ pub fn cache_instruments() -> CachedInstruments {
 }
 
 
-
+// TODO add previous tick's ending?? maybe
 pub fn add_notes_together(notes: &[Note], cache: &CachedInstruments, multiplier: f32) -> Waveform {
     let max_len_note = notes.iter().max_by_key(
         |note| cache.waveforms[note.instrument_id][note.pitch].to_interleaved_samples().len()
@@ -112,6 +112,13 @@ pub fn add_notes_together_statespace(notes: &NoteStateSpace, cache: &CachedInstr
         for pitch in 0..PITCH_COUNT {
             notes_vec.push(Note { instrument_id: instrid, pitch, volume: get_volume_from_state_space(notes, instrid, pitch) })
         }
+    }
+    add_notes_together(&notes_vec, cache, multiplier)
+}
+pub fn add_notes_together_merge_from_stsp(notes: &[Note], volumes: &[f32], cache: &CachedInstruments, multiplier: f32) -> Waveform {
+    let mut notes_vec: Vec<Note> = Vec::new();
+    for idx in 0..notes.len() {
+        notes_vec.push(Note { instrument_id: notes[idx].instrument_id, pitch: notes[idx].pitch, volume: volumes[idx] })
     }
     add_notes_together(&notes_vec, cache, multiplier)
 }

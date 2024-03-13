@@ -2,7 +2,9 @@
 use crate::note;
 use crate::wave;
 use crate::debug;
+use crate::wave::waveform_to_spectrogram;
 
+use argmin::core::State;
 use babycat::{Signal, Waveform};
 
 
@@ -24,6 +26,7 @@ fn calculate_distance(song_part: &[Vec<f32>], sample: &[Vec<f32>], dist: &dyn Fn
     distance
 }
 
+//TODO double m?
 fn calculate_assymetric_distance(song_part: &[Vec<f32>], sample: &Vec<Vec<f32>>, sample_volume: f32) -> f32 {
     calculate_distance(song_part, sample, &|sp, sa| if sp >= sa {0.0} else {(sp-sa) * (sp-sa)}, sample_volume)
 } // TODO where do we cut?
@@ -42,7 +45,7 @@ use debug::debug_save_as_image;
 use debug::debug_save_as_wav;
 use note::Note;
 
-pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedInstruments) {
+pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedInstruments) -> Vec<note::Note> {
     let mut test_found_notes: Vec<note::Note> = Vec::new();
 
     let fft_size = 4096;
@@ -58,14 +61,14 @@ pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedI
             debug_save_as_image(&wave::subtract_2d_vecs(song_part, &sample_2dvec), &format!("{instr_idx}_pitch{pitch:02}.png"));
 
             let TEMP_volume = 0.5; // TODO
-            let diff = calculate_assymetric_distance(song_part, &sample_2dvec, TEMP_volume); // TODO
+            let diff = calculate_assymetric_distance(song_part, &sample_2dvec, TEMP_volume);
             
             let silence = [vec![0.0; sample_2dvec[0].len()]; 1];
-            let compensation = calculate_assymetric_distance(&silence, &sample_2dvec, TEMP_volume); // TODO
+            let compensation = calculate_assymetric_distance(&silence, &sample_2dvec, TEMP_volume);
             let compensated_val = diff / compensation;
             println!("{pitch:02}: {diff:.5}, comp:{compensation:.5}, compensated: {compensated_val:.5}");
 
-            if compensated_val < 0.015 {
+            if compensated_val < 0.03 {// TODO it was 0.015, threshold for guessing if there's a note there
                 test_found_notes.push(Note {instrument_id: instr_idx, pitch, volume: TEMP_volume});
                 println!("Added this note!");
             }
@@ -73,8 +76,9 @@ pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedI
     }
 
 
-    let found_wf = note::add_notes_together(&test_found_notes, cache, 1.0);
-    debug_save_as_wav(&found_wf, "test_found_notes.wav");
+    //let found_wf = note::add_notes_together(&test_found_notes, cache, 1.0);
+    //debug_save_as_wav(&found_wf, "test_found_notes.wav");
+    test_found_notes
 }
 
 
@@ -97,37 +101,49 @@ struct Opti<'a> {
     cache: &'a note::CachedInstruments,
     multiplier: f32,
     song_part: &'a note::SpectrogramSlice,
+    found_notes: &'a [note::Note],
+    hops_to_compare: usize,
 }
 impl CostFunction for Opti<'_> {
-    type Param = note::NoteStateSpace;
+    type Param = Vec<f32>; // it should be found_notes.len() long
     type Output = f32;
     fn cost(&self, param: &Self::Param) -> Result<Self::Output, Error> {
 
-        let wf = note::add_notes_together_statespace(param, self.cache, self.multiplier); //TODO only add the necessary samples together
+        assert_eq!(param.len(), self.found_notes.len(), "Volume guess vec should be as long as the notes vec to guess");
+        let wf = note::add_notes_together_merge_from_stsp(self.found_notes, param, self.cache, self.multiplier); //TODO only add the necessary length together
         let fft_size = 4096;
         let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024);
         let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
-        let found_part = &spectrogram_2dvec[0..30];
-        let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1-0?
+        let found_part = &spectrogram_2dvec[0..self.hops_to_compare];
+        let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0?
         Ok(diff)
 
         //Ok((param[0]-0.34) *(param[0]-0.34)+ (param[1]-0.36) *(param[1]-0.36))
     }
 }
 
-pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform) {
+pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_notes: &[note::Note]) {
+    let hopstocomp = 10;//TODO ..10?? it depends on self.song_part.len() as well
     let spectrogram = &wave::waveform_to_spectrogram(waveform, 4096, 1024)
-    [0..30];
+    [0..hopstocomp];
 
-    let cost_function = Opti {cache, multiplier: 0.5, song_part: spectrogram};
+    let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
-    let solver = ParticleSwarm::new((vec![0.0; note::INSTRUMENT_COUNT*note::PITCH_COUNT], vec![1.0; note::INSTRUMENT_COUNT*note::PITCH_COUNT]), 40); // TODO it could be bigger than 1.0
+    let solver = ParticleSwarm::new((vec![0.0; found_notes.len()], vec![1.0; found_notes.len()]), 40); // TODO it could be bigger than 1.0
 
     let res = Executor::new(cost_function, solver)
-        .configure(|state| state.max_iters(100))
+        .configure(|state| state.max_iters(12))
         .add_observer(SlogLogger::term(), ObserverMode::Always).run().unwrap();
 
     // Print Result
     println!("{res}");
 
+
+    let guess_wf = note::add_notes_together_merge_from_stsp(found_notes, &res.state.get_param().unwrap().position, cache, 1.0);
+    debug_save_as_image(&wave::subtract_2d_vecs(
+        spectrogram, &waveform_to_spectrogram(&guess_wf, 4096, 1024))[0..hopstocomp], 
+        "test_diff_found_notes.png");
+
 }
+
+//TODO: overamplification and bpm as parameters at first, and try to guess them later
