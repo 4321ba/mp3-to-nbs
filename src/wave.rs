@@ -61,7 +61,15 @@ pub fn spectrum_to_2d_vec(spectrogram: &Vec<FrequencySpectrum>) -> Vec<Vec<f32>>
     array
 }
 
+pub fn waveform_to_spectrogram(wf: &Waveform, fft_size: usize, hop_size: usize) -> note::Spectrogram {
+    let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size);
+    spectrum_to_2d_vec(&spectrogram)
+}
+
+
 use std::cmp::max;
+
+use crate::note;
 pub fn subtract_2d_vecs(one: &[Vec<f32>], other: &[Vec<f32>]) -> Vec<Vec<f32>> {
     let bigger_width = max(one.len(), other.len());
     let height = one[0].len();
