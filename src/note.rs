@@ -3,6 +3,10 @@
 const INSTRUMENT_FILENAMES: &[&str] = &[
     "Sounds/dbass.ogg",
     "Sounds/harp.ogg",
+    "Sounds/pling.ogg",
+    "Sounds/sdrum.ogg",
+//    "Sounds/bdrum.ogg",
+    "Sounds/click.ogg",
 ];
 /*
 const INSTRUMENT_FILENAMES: &[&str] = &[
@@ -37,6 +41,7 @@ pub struct CachedInstruments {
     pub spectrograms: [Vec<Spectrogram>; INSTRUMENT_COUNT],
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Note {
     pub instrument_id: usize, // 0..INSTRUMENT_COUNT
     pub pitch: usize, // 0..PITCH_COUNT

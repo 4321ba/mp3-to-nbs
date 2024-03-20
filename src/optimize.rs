@@ -95,6 +95,7 @@ pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedI
 
 use argmin::core::{CostFunction, Error, Executor};
 use argmin::solver::particleswarm::ParticleSwarm;
+use argmin::solver::neldermead::NelderMead;
 use argmin::core::observers::ObserverMode;
 use argmin_observer_slog::SlogLogger;
 struct Opti<'a> {
@@ -110,6 +111,10 @@ impl CostFunction for Opti<'_> {
     fn cost(&self, param: &Self::Param) -> Result<Self::Output, Error> {
 
         assert_eq!(param.len(), self.found_notes.len(), "Volume guess vec should be as long as the notes vec to guess");
+        
+        //for nelder-mead
+        //if param.iter().any(|x| *x < 0.0) {return Ok(1000.0);} // very expensive
+        
         let wf = note::add_notes_together_merge_from_stsp(self.found_notes, param, self.cache, self.multiplier); //TODO only add the necessary length together
         let fft_size = 4096;
         let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024);
@@ -129,21 +134,43 @@ pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_note
 
     let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
-    let solver = ParticleSwarm::new((vec![0.0; found_notes.len()], vec![1.0; found_notes.len()]), 40); // TODO it could be bigger than 1.0
+    let param_number = found_notes.len();
+    //let solverPSO = ParticleSwarm::new((vec![0.0; param_number], vec![1.0; param_number]), 40); // TODO it could be bigger than 1.0
 
-    let res = Executor::new(cost_function, solver)
-        .configure(|state| state.max_iters(12))
+    let mut paramsvec_nm: Vec<Vec<f32>> = Vec::new();
+    for i in 0..=param_number {
+        paramsvec_nm.push(vec![1.0;param_number]);
+        if i < param_number {
+            paramsvec_nm[i][i] = 0.0;
+        }// else { paramsvec_nm[i] = vec![1.0;param_number]; }
+    }
+    let solverNM = NelderMead::new(paramsvec_nm)
+    .with_sd_tolerance(0.0001).unwrap();
+
+
+    let res = Executor::new(cost_function, solverNM)
+        .configure(|state| state.max_iters(200))
         .add_observer(SlogLogger::term(), ObserverMode::Always).run().unwrap();
 
     // Print Result
     println!("{res}");
 
+    //let found_positions = &res.state.get_param().unwrap().position; // PSO
+    let found_positions = &res.state.get_best_param().unwrap();//temp
 
-    let guess_wf = note::add_notes_together_merge_from_stsp(found_notes, &res.state.get_param().unwrap().position, cache, 1.0);
+
+
+    let guess_wf = note::add_notes_together_merge_from_stsp(found_notes, found_positions, cache, 1.0);
     debug_save_as_image(&wave::subtract_2d_vecs(
         spectrogram, &waveform_to_spectrogram(&guess_wf, 4096, 1024))[0..hopstocomp], 
         "test_diff_found_notes.png");
 
+    let mut owned_notes: Vec<Note> = found_notes.to_vec();
+    for i in 0..owned_notes.len() {
+        owned_notes[i].volume = found_positions[i];
+    }
+    println!("Found: {:?}", owned_notes);
+
 }
 
-//TODO: overamplification and bpm as parameters at first, and try to guess them later
+//TODO: overamplification and bpm as parameters at first, and try to guess them later; tuning as well???

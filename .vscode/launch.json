@@ -19,6 +19,10 @@
                     "kind": "bin"
                 }
             },
+            //newdiscjing.wav
+            //test_01_apoc_ffof.ogg
+            //test_02_wc_qctc.ogg
+            //test_own.mp3
             "args": ["--input-file", "musictests/newdiscjing.wav"],
             "cwd": "${workspaceFolder}"
         },
