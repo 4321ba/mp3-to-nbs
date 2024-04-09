@@ -37,12 +37,12 @@ fn test_main(waveform: &Waveform) {
     }*/
 
     //let test1 = create_spectrum(samples, waveform.frame_rate_hz(), 128, 1024);
-    let test2 = wave::create_spectrum(samples, waveform.frame_rate_hz(), 4096, 1024);
+    let test2 = wave::create_spectrum(samples, waveform.frame_rate_hz(), 4096, 1024, -1);
     //println!("{} {}", test1.len(), test2.len());
     debug_save_as_image(&wave::spectrum_to_2d_vec(&test2), "image.png");
     let waveform_diff_pitch = wave::change_pitch(&waveform, 1.5);
     let test3 = wave::create_spectrum(
-        waveform_diff_pitch.to_interleaved_samples(), waveform_diff_pitch.frame_rate_hz(), 4096, 1024);
+        waveform_diff_pitch.to_interleaved_samples(), waveform_diff_pitch.frame_rate_hz(), 4096, 1024, -1);
     debug_save_as_image(&wave::spectrum_to_2d_vec(&test3), "image2.png");
     debug_save_as_wav(waveform, "wf1.wav");
     debug_save_as_wav(&waveform_diff_pitch, "wf2.wav");
@@ -56,7 +56,9 @@ fn test_main(waveform: &Waveform) {
 
 
 
+
 use clap::Parser;
+use crate::wave::waveform_to_spectrogram;
 use crate::{cli::Args, note::Note};
 fn main() {
     // Argument parsing
@@ -68,7 +70,12 @@ fn main() {
     
     let cache = note::cache_instruments();
     //test_main(&waveform);
-    let found_notes = optimize::test_distances_for_instruments(&waveform, &cache);
     
-    optimize::optimize(&cache, &waveform, &found_notes);
+    wave::get_interesting_hopcounts(&waveform_to_spectrogram(&waveform, 4096, 1024));
+    
+    let found_notes = optimize::test_distances_for_instruments(&waveform, &cache);
+
+    let better_found_notes = optimize::optimize(&cache, &waveform, &found_notes);
+
+    println!("Found: {:?}", better_found_notes);
 }

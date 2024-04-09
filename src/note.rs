@@ -82,7 +82,7 @@ pub fn cache_instruments() -> CachedInstruments {
         for pitch in 0..PITCH_COUNT {
             let sample_wf_diff_pitch = &cached_instruments.waveforms[instr_idx][pitch];
             let sample_spectrogram = wave::create_spectrum(
-                sample_wf_diff_pitch.to_interleaved_samples(), sample_wf_diff_pitch.frame_rate_hz(), fft_size, hop_size);
+                sample_wf_diff_pitch.to_interleaved_samples(), sample_wf_diff_pitch.frame_rate_hz(), fft_size, hop_size, -1);
             let sample_2dvec = wave::spectrum_to_2d_vec(&sample_spectrogram);
             cached_instruments.spectrograms[instr_idx].push(sample_2dvec);
         }

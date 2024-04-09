@@ -35,12 +35,13 @@ pub fn transform_fourier(samples: &[f32], sampling_rate: u32) -> FrequencySpectr
     ).expect("Something went wrong with calculating fft")
 }
 
-pub fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_size: usize) -> Vec<FrequencySpectrum> {
+pub fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_size: usize, hop_count: isize/*<0 if full conversion*/) -> Vec<FrequencySpectrum> {
     let mut padded_samples: Vec<f32> = vec![0.0; fft_size / 2];
     padded_samples.extend(samples);
     padded_samples.resize(samples.len() + fft_size, 0.0);
 
-    (0..samples.len()).step_by(hop_size)
+    let last_sample = if hop_count < 0 { samples.len() } else { hop_size * hop_count as usize };
+    (0..last_sample).step_by(hop_size)
     .map(|begin| transform_fourier(&padded_samples[begin..begin+fft_size], sampling_rate))
     .collect::<Vec<FrequencySpectrum>>()
 }
@@ -62,9 +63,32 @@ pub fn spectrum_to_2d_vec(spectrogram: &Vec<FrequencySpectrum>) -> Vec<Vec<f32>>
 }
 
 pub fn waveform_to_spectrogram(wf: &Waveform, fft_size: usize, hop_size: usize) -> note::Spectrogram {
-    let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size);
+    let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, -1);
     spectrum_to_2d_vec(&spectrogram)
 }
+
+pub fn waveform_to_spectrogram_countlimited(wf: &Waveform, fft_size: usize, hop_size: usize, hop_count: usize) -> note::Spectrogram {
+    let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, hop_count as isize);
+    spectrum_to_2d_vec(&spectrogram)
+}
+
+pub fn get_interesting_hopcounts(spectrogram: &note::Spectrogram) -> Vec<usize> {
+    let sumvec = spectrogram.iter().map(|v| v.iter().sum()).collect::<Vec<f32>>();
+    println!("Amplitude sums: {:?}", sumvec);
+    let mut ret = Vec::new();
+
+    if sumvec[0] > 0.1 { ret.push(0) } // TODO magic numbers everywhere xddd
+    for i in 0..(sumvec.len()-1) {
+        if sumvec[i] * 1.2/* TODO magic number */ < sumvec[i+1]
+            && (ret.len() < 1 || ret[ret.len()-1] < i-2) {
+            ret.push(i);
+        }
+    }
+
+    println!("Interesting hopcounts: {:?}", ret);
+    ret
+}
+
 
 
 use std::cmp::max;

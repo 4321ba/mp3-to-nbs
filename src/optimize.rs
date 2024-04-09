@@ -50,7 +50,7 @@ pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedI
 
     let fft_size = 4096;
     let samples = waveform.to_interleaved_samples();
-    let spectrogram = wave::create_spectrum(samples, waveform.frame_rate_hz(), fft_size, 1024);
+    let spectrogram = wave::create_spectrum(samples, waveform.frame_rate_hz(), fft_size, 1024, -1);
     let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
     let song_part = &spectrogram_2dvec[0..40];
     debug_save_as_image(song_part, "song_part.png");
@@ -117,9 +117,10 @@ impl CostFunction for Opti<'_> {
         
         let wf = note::add_notes_together_merge_from_stsp(self.found_notes, param, self.cache, self.multiplier); //TODO only add the necessary length together
         let fft_size = 4096;
-        let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024);
+        let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024, self.hops_to_compare as isize);
         let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
         let found_part = &spectrogram_2dvec[0..self.hops_to_compare];
+        assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
         let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0?
         Ok(diff)
 
@@ -127,10 +128,10 @@ impl CostFunction for Opti<'_> {
     }
 }
 
-pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_notes: &[note::Note]) {
+pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_notes: &[note::Note]) -> Vec<note::Note>  {
     let hopstocomp = 10;//TODO ..10?? it depends on self.song_part.len() as well
-    let spectrogram = &wave::waveform_to_spectrogram(waveform, 4096, 1024)
-    [0..hopstocomp];
+    let spectrogram = &&wave::waveform_to_spectrogram_countlimited(waveform, 4096, 1024, hopstocomp);
+    assert_eq!(spectrogram.len(), hopstocomp, "Just to make sure the above function works well");
 
     let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
@@ -169,7 +170,7 @@ pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_note
     for i in 0..owned_notes.len() {
         owned_notes[i].volume = found_positions[i];
     }
-    println!("Found: {:?}", owned_notes);
+    owned_notes
 
 }
 
