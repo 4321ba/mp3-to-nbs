@@ -3,10 +3,10 @@
 const INSTRUMENT_FILENAMES: &[&str] = &[
     "Sounds/dbass.ogg",
     "Sounds/harp.ogg",
-    "Sounds/pling.ogg",
-    "Sounds/sdrum.ogg",
+    //"Sounds/pling.ogg",
+    //"Sounds/sdrum.ogg",
 //    "Sounds/bdrum.ogg",
-    "Sounds/click.ogg",
+    //"Sounds/click.ogg",
 ];
 /*
 const INSTRUMENT_FILENAMES: &[&str] = &[
@@ -93,6 +93,10 @@ pub fn cache_instruments() -> CachedInstruments {
 
 // TODO add previous tick's ending?? maybe
 pub fn add_notes_together(notes: &[Note], cache: &CachedInstruments, multiplier: f32) -> Waveform {
+    if notes.len() == 0 { // TODO is this really the best way?
+        return Waveform::new(cache.waveforms[0][0].frame_rate_hz(), cache.waveforms[0][0].num_channels(), vec![0.0; 1]);
+    }
+
     let max_len_note = notes.iter().max_by_key(
         |note| cache.waveforms[note.instrument_id][note.pitch].to_interleaved_samples().len()
     ).unwrap();

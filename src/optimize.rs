@@ -45,14 +45,11 @@ use debug::debug_save_as_image;
 use debug::debug_save_as_wav;
 use note::Note;
 
-pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedInstruments) -> Vec<note::Note> {
+pub fn test_distances_for_instruments(spectrogram_slice: &note::SpectrogramSlice, cache: &note::CachedInstruments) -> Vec<note::Note> {
     let mut test_found_notes: Vec<note::Note> = Vec::new();
 
     let fft_size = 4096;
-    let samples = waveform.to_interleaved_samples();
-    let spectrogram = wave::create_spectrum(samples, waveform.frame_rate_hz(), fft_size, 1024, -1);
-    let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
-    let song_part = &spectrogram_2dvec[0..40];
+    let song_part = &&spectrogram_slice[0..40];//TODO dont we need hopstocomp here?
     debug_save_as_image(song_part, "song_part.png");
     for instr_idx in 0..note::INSTRUMENT_COUNT {
         print!("\ninstr idx: {}\n", instr_idx);
@@ -68,7 +65,7 @@ pub fn test_distances_for_instruments(waveform: &Waveform, cache: &note::CachedI
             let compensated_val = diff / compensation;
             println!("{pitch:02}: {diff:.5}, comp:{compensation:.5}, compensated: {compensated_val:.5}");
 
-            if compensated_val < 0.03 {// TODO it was 0.015, threshold for guessing if there's a note there
+            if compensated_val < 0.035 {// TODO it was 0.015, threshold for guessing if there's a note there
                 test_found_notes.push(Note {instrument_id: instr_idx, pitch, volume: TEMP_volume});
                 println!("Added this note!");
             }
@@ -128,10 +125,10 @@ impl CostFunction for Opti<'_> {
     }
 }
 
-pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_notes: &[note::Note]) -> Vec<note::Note>  {
+pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::SpectrogramSlice, found_notes: &[note::Note]) -> Vec<note::Note>  {
     let hopstocomp = 10;//TODO ..10?? it depends on self.song_part.len() as well
-    let spectrogram = &&wave::waveform_to_spectrogram_countlimited(waveform, 4096, 1024, hopstocomp);
-    assert_eq!(spectrogram.len(), hopstocomp, "Just to make sure the above function works well");
+    let spectrogram = &spectrogram_slice[0..hopstocomp];
+    assert_eq!(spectrogram.len(), hopstocomp, "Just to make sure the above function works well - nevermind it got replaced");
 
     let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
@@ -174,4 +171,10 @@ pub fn optimize(cache: &note::CachedInstruments, waveform: &Waveform, found_note
 
 }
 
+pub fn full_optimize_timestamp(cache: &note::CachedInstruments, waveform: &Waveform, start_hop: usize) -> Vec<note::Note>  {
+    let spectrogram = wave::waveform_to_spectrogram(waveform, 4096, 1024); // TODO this only needs to be done even less frequently
+    let found_notes = test_distances_for_instruments(&spectrogram[start_hop..], &cache);
+    let better_found_notes = optimize(&cache, &spectrogram[start_hop..], &found_notes);
+    better_found_notes
+}
 //TODO: overamplification and bpm as parameters at first, and try to guess them later; tuning as well???

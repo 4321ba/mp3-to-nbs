@@ -38,7 +38,7 @@ pub fn transform_fourier(samples: &[f32], sampling_rate: u32) -> FrequencySpectr
 pub fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_size: usize, hop_count: isize/*<0 if full conversion*/) -> Vec<FrequencySpectrum> {
     let mut padded_samples: Vec<f32> = vec![0.0; fft_size / 2];
     padded_samples.extend(samples);
-    padded_samples.resize(samples.len() + fft_size, 0.0);
+    padded_samples.resize(max(samples.len() as isize, hop_size as isize*hop_count) as usize + fft_size, 0.0); // so that empty samples is converted well as well
 
     let last_sample = if hop_count < 0 { samples.len() } else { hop_size * hop_count as usize };
     (0..last_sample).step_by(hop_size)
@@ -79,13 +79,19 @@ pub fn get_interesting_hopcounts(spectrogram: &note::Spectrogram) -> Vec<usize> 
 
     if sumvec[0] > 0.1 { ret.push(0) } // TODO magic numbers everywhere xddd
     for i in 0..(sumvec.len()-1) {
-        if sumvec[i] * 1.2/* TODO magic number */ < sumvec[i+1]
-            && (ret.len() < 1 || ret[ret.len()-1] < i-2) {
+        if (i < 1 || sumvec[i-1] * 1.2/* TODO magic number */ < sumvec[i])
+            && (i >= sumvec.len()-1 || i < 1 || sumvec[i] - sumvec[i-1] > sumvec[i+1] - sumvec[i])
+            && (ret.len() < 1 || i < 2 || ret[ret.len()-1] < i-2) {
             ret.push(i);
         }
     }
 
-    println!("Interesting hopcounts: {:?}", ret);
+    //println!("Interesting hopcounts: {:?}", ret);
+    println!("Interesting hopcounts:");
+    for i in &ret {
+        print!("{}: {};   ", i, sumvec[*i]);
+    }
+    println!();
     ret
 }
 

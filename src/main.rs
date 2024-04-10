@@ -3,6 +3,7 @@ mod note;
 mod wave;
 mod optimize;
 mod debug;
+mod nbs;
 
 fn max_of_slice(slice: &[f32]) -> &f32 {
     slice
@@ -67,15 +68,21 @@ fn main() {
 
     
     let waveform = wave::import_sound_file(&args.input_file);
-    
+
     let cache = note::cache_instruments();
     //test_main(&waveform);
     
-    wave::get_interesting_hopcounts(&waveform_to_spectrogram(&waveform, 4096, 1024));
-    
-    let found_notes = optimize::test_distances_for_instruments(&waveform, &cache);
+    let hopcounts = wave::get_interesting_hopcounts(&waveform_to_spectrogram(&waveform, 4096, 1024));
 
-    let better_found_notes = optimize::optimize(&cache, &waveform, &found_notes);
+    let mut all_found_notes = Vec::new();
+    for i in &hopcounts {
+        let notes = optimize::full_optimize_timestamp(&cache, &waveform, *i);
+        println!("Found notes: {:?}", notes);
+        all_found_notes.push(notes);
+    }
 
-    println!("Found: {:?}", better_found_notes);
+    println!("Found all notes: {:?}", all_found_notes);
+
+
+    nbs::export_notes(all_found_notes, hopcounts);
 }
