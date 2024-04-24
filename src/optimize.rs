@@ -37,7 +37,9 @@ fn calculate_symetric_distance(song_part: &note::SpectrogramSlice, sample: &note
     let cut_songpart = if sample.len() < song_part.len() {
         &song_part[0..sample.len()]
     } else { song_part };
-    calculate_distance(cut_songpart, cut_sample, &|sp, sa| (sp-sa) * (sp-sa), sample_volume)
+    //calculate_distance(cut_songpart, cut_sample, &|sp, sa| (sp-sa) * (sp-sa), sample_volume)
+    //much better with linear distance/error
+    calculate_distance(cut_songpart, cut_sample, &|sp, sa| (sp-sa).abs(), sample_volume)
 }
 
 
@@ -49,15 +51,18 @@ pub fn test_distances_for_instruments(spectrogram_slice: &note::SpectrogramSlice
     let mut test_found_notes: Vec<note::Note> = Vec::new();
 
     let fft_size = 4096;
+    if spectrogram_slice.len() < 40 {
+        return Vec::new();
+    }//  so that it doesnt panic sometimes
     let song_part = &&spectrogram_slice[0..40];//TODO dont we need hopstocomp here?
     debug_save_as_image(song_part, "song_part.png");
     for instr_idx in 0..note::INSTRUMENT_COUNT {
         print!("\ninstr idx: {}\n", instr_idx);
         for pitch in 0..note::PITCH_COUNT {
             let sample_2dvec = &cache.spectrograms[instr_idx][pitch];
-            debug_save_as_image(&wave::subtract_2d_vecs(song_part, &sample_2dvec), &format!("{instr_idx}_pitch{pitch:02}.png"));
+            //debug_save_as_image(&wave::subtract_2d_vecs(song_part, &sample_2dvec), &format!("{instr_idx}_pitch{pitch:02}.png"));
 
-            let TEMP_volume = 0.5; // TODO
+            let TEMP_volume = 0.2; // TODO it was 0.5
             let diff = calculate_assymetric_distance(song_part, &sample_2dvec, TEMP_volume);
             
             let silence = [vec![0.0; sample_2dvec[0].len()]; 1];
@@ -126,6 +131,9 @@ impl CostFunction for Opti<'_> {
 }
 
 pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::SpectrogramSlice, found_notes: &[note::Note]) -> Vec<note::Note>  {
+    if found_notes.len() == 0 {
+        return Vec::new();
+    }
     let hopstocomp = 10;//TODO ..10?? it depends on self.song_part.len() as well
     let spectrogram = &spectrogram_slice[0..hopstocomp];
     assert_eq!(spectrogram.len(), hopstocomp, "Just to make sure the above function works well - nevermind it got replaced");
@@ -171,8 +179,7 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
 }
 
-pub fn full_optimize_timestamp(cache: &note::CachedInstruments, waveform: &Waveform, start_hop: usize) -> Vec<note::Note>  {
-    let spectrogram = wave::waveform_to_spectrogram(waveform, 4096, 1024); // TODO this only needs to be done even less frequently
+pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::Spectrogram, start_hop: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
     let found_notes = test_distances_for_instruments(&spectrogram[start_hop..], &cache);
     let better_found_notes = optimize(&cache, &spectrogram[start_hop..], &found_notes);
     better_found_notes

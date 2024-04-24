@@ -81,7 +81,7 @@ pub fn get_interesting_hopcounts(spectrogram: &note::Spectrogram) -> Vec<usize> 
     for i in 0..(sumvec.len()-1) {
         if (i < 1 || sumvec[i-1] * 1.2/* TODO magic number */ < sumvec[i])
             && (i >= sumvec.len()-1 || i < 1 || sumvec[i] - sumvec[i-1] > sumvec[i+1] - sumvec[i])
-            && (ret.len() < 1 || i < 2 || ret[ret.len()-1] < i-2) {
+            && (ret.len() < 1 || (ret[ret.len()-1] as i32) < i as i32-2) {
             ret.push(i);
         }
     }

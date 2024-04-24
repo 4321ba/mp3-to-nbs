@@ -1,6 +1,6 @@
 
 // index is the ID of the instrument
-const INSTRUMENT_FILENAMES: &[&str] = &[
+pub const INSTRUMENT_FILENAMES: &[&str] = &[
     "Sounds/dbass.ogg",
     "Sounds/harp.ogg",
     //"Sounds/pling.ogg",
@@ -9,7 +9,7 @@ const INSTRUMENT_FILENAMES: &[&str] = &[
     //"Sounds/click.ogg",
 ];
 /*
-const INSTRUMENT_FILENAMES: &[&str] = &[
+pub const INSTRUMENT_FILENAMES: &[&str] = &[
     "Sounds/banjo.ogg",
     "Sounds/bdrum.ogg",
     "Sounds/bell.ogg",

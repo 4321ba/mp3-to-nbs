@@ -61,6 +61,7 @@ fn test_main(waveform: &Waveform) {
 use clap::Parser;
 use crate::wave::waveform_to_spectrogram;
 use crate::{cli::Args, note::Note};
+use rayon::prelude::*;
 fn main() {
     // Argument parsing
     let args = Args::parse();
@@ -73,16 +74,22 @@ fn main() {
     //test_main(&waveform);
     
     let hopcounts = wave::get_interesting_hopcounts(&waveform_to_spectrogram(&waveform, 4096, 1024));
+    //let hopcounts2: &[usize] = &hopcounts;
 
+    let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
     let mut all_found_notes = Vec::new();
-    for i in &hopcounts {
-        let notes = optimize::full_optimize_timestamp(&cache, &waveform, *i);
+    for i in &hopcounts { // TODO parallelization
+        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, *i);
         println!("Found notes: {:?}", notes);
         all_found_notes.push(notes);
     }
 
     println!("Found all notes: {:?}", all_found_notes);
 
-
-    nbs::export_notes(all_found_notes, hopcounts);
+    let tps = nbs::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
+    dbg!(tps);
+    dbg!(&hopcounts);
+    let timestamps = nbs::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
+    dbg!(&timestamps);
+    nbs::export_notes(&all_found_notes, &timestamps, tps);
 }

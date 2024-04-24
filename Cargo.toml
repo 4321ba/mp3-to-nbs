@@ -5,6 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.dev]
+opt-level = 3 # or it was 1
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+incremental = false
+codegen-units = 1
+panic = "abort"
+
 [dependencies]
 babycat = "0.0.14"
 spectrum-analyzer = "1.2.5"
@@ -14,3 +24,6 @@ argmin = "0.10.0"
 argmin-math = "0.4.0"
 argmin-observer-slog = "0.1.0"
 nbs-rs = "0.1.1"
+phf = { version = "0.11.2", features = ["macros"] }
+# aubio = "0.2.1"
+rayon = "1.10.0"
