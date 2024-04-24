@@ -4,9 +4,9 @@ pub const INSTRUMENT_FILENAMES: &[&str] = &[
     "Sounds/dbass.ogg",
     "Sounds/harp.ogg",
     //"Sounds/pling.ogg",
-    //"Sounds/sdrum.ogg",
-//    "Sounds/bdrum.ogg",
-    //"Sounds/click.ogg",
+    "Sounds/sdrum.ogg",
+    //"Sounds/bdrum.ogg",
+    "Sounds/click.ogg",
 ];
 /*
 pub const INSTRUMENT_FILENAMES: &[&str] = &[

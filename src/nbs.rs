@@ -54,9 +54,29 @@ pub fn convert_hopcounts_to_ticks(hopcounts: &Vec<usize>, tps: f64, hop_size: us
     tickdiff
 }
 
+pub fn clean_quiet_notes(notes: &Vec<Vec<crate::note::Note>>) -> Vec<Vec<crate::note::Note>> {
+    let mut ret = Vec::new();
+    for tick in notes {
+        ret.push(Vec::new());
+        let last = ret.len() - 1;
+        for note in tick {
+            if note.volume.abs() >= 0.1 {
+                ret[last].push(*note);
+            }
+        }
+    }
+    ret
+}
+
 pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>, tps: f64) {
     assert_eq!(notes.len(), timestamps.len(), "Amount of note vecs should be the amount of timestamps!");
-    let max_layer_count = notes.iter().max_by_key(|v| v.len()).unwrap().len();
+    let layer_counts_by_instrid: Vec<usize> = (0..note::INSTRUMENT_COUNT).map(|instr_id|
+        notes.iter().max_by_key(|tick|
+            tick.iter().filter(|note| note.instrument_id == instr_id).count()
+        ).unwrap().iter().filter(|note| note.instrument_id == instr_id).count()
+    ).collect();
+    let max_layer_count = layer_counts_by_instrid.iter().sum();
+    //let max_layer_count = notes.iter().max_by_key(|v| v.len()).unwrap().len();
     let mut file = File::create("out.nbs").unwrap();
     let mut header = Header::new(NbsFormat::OpenNoteBlockStudio(4)); // Create a header.
     header.song_name = String::from("test"); // Change the name to `test`.
@@ -69,14 +89,20 @@ pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>
             .push(Layer::from_format(NbsFormat::OpenNoteBlockStudio(4)));
     }
     // Insert notes into the layers
-    for i in 0..timestamps.len() {
+    for i in 0..notes.len() {
+        let mut current_instrid = 0;
+        let mut instrid_count = 0;
+        let mut current_instrid_beginning: usize = 0;
         for j in 0..notes[i].len() {
             let note = &notes[i][j];
             let vol = (std::cmp::min(std::cmp::max((note.volume.abs()*100.0) as i32, 0), 100)) as i8;
-            if vol < 10 {
-                continue;
+            //if vol < 10 { continue; }
+            if current_instrid != note.instrument_id {
+                current_instrid = note.instrument_id;
+                current_instrid_beginning = (0..note.instrument_id).map(|i| layer_counts_by_instrid[i]).sum();
+                instrid_count = 0;
             }
-            noteblocks.layers[j].notes.insert(
+            noteblocks.layers[current_instrid_beginning + instrid_count].notes.insert(
                 timestamps[i] as i16,
                 Note::new(
                     COUNTRIES[note::INSTRUMENT_FILENAMES[note.instrument_id]],
@@ -87,6 +113,7 @@ pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>
                     Some(0),
                 ),
             );
+            instrid_count += 1;
         }
     }
     let custom_instruments = CustomInstruments::new(); // Create a empty list of custom instruments.

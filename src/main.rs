@@ -77,19 +77,22 @@ fn main() {
     //let hopcounts2: &[usize] = &hopcounts;
 
     let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
+    /*
     let mut all_found_notes = Vec::new();
     for i in &hopcounts { // TODO parallelization
         let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, *i);
         println!("Found notes: {:?}", notes);
         all_found_notes.push(notes);
-    }
+    }*/
+    let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
 
     println!("Found all notes: {:?}", all_found_notes);
 
-    let tps = nbs::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
+    //let tps = nbs::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
+    let tps = 10.0;//TODO hardcoded for now
     dbg!(tps);
     dbg!(&hopcounts);
     let timestamps = nbs::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
     dbg!(&timestamps);
-    nbs::export_notes(&all_found_notes, &timestamps, tps);
+    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);
 }
