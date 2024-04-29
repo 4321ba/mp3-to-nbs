@@ -1,0 +1,23 @@
+introduction
+	általános
+	konkrétabb bevezetés
+	motiváció
+	hogyan csinálom
+	utsó bekezdés: dokumentum struktúrája
+	
+related work (laborban nem kell annyira erőltetni)
+	cikkenként bekezdés (pl 10 db)
+	
+adatok: formátum, honnan, statisztika esetleg, előfeldolgozás
+
+módszer leírása (hogyan keresek):
+	Nelder-Mead, meg a PSO miért nem olyan jó
+	távolságot hogyan számolom, állapottér
+
+evaluation results, eredmények
+	alg ilyen gyorsan találta meg az optimumot, így és így néz ki
+	módszerek összehasonlítása
+	2d grafikon: függvényhívások száma X pontosság, 2 görbe a két optimalizálóval
+
+conclusion and future work
+	mégegyszer összefoglalva, highlightolva, merre tovább
