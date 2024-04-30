@@ -38,7 +38,7 @@ A Bevezetés után felsorolom a kapcsolódó munkákat, ahol kapcsolódó saját
 
 ## MeloMIDI
 
-A [MeloMIDI](https://github.com/4321ba/MeloMIDI) egy korábbi projektem, ami hullámos hangfájlból csinál MIDI fájlt. Grafikus felülettel rendelkezik, és a spektrogram fölött lehet egérrel testreszabni az exportálandó MIDI fájlt. Véleményem szerint egészen jó eredményt is képes adni.
+[GitHub link.](https://github.com/4321ba/MeloMIDI) A MeloMIDI egy korábbi projektem, ami hullámos hangfájlból csinál MIDI fájlt. Grafikus felülettel rendelkezik, és a spektrogram fölött lehet egérrel testreszabni az exportálandó MIDI fájlt. Véleményem szerint egészen jó eredményt is képes adni.
 
 ## Más wave to midi programok
 
@@ -54,17 +54,25 @@ A teljesség igénye nélkül felsorolok még pár, a MeloMIDI-hez hasonló cél
 
 ## Noteblock Music Yoinker
 
-Ez egy saját projekt, ami egy Minecraft modból, és python scriptekből áll, note block-os zenék felvételére, egy saját, csv alapú formátumba. [Itt](https://github.com/4321ba/noteblock_music_yoinker) található. A mod elég fapados, a játékon belül hallott zenét önti egy csv fájlba. Ezután ezt python scriptekkel lehet sokféleképpen feldolgozni: összefűzni / átlagolni több felvételt ugyanarról a zenéről, hogy eltüntesse / csökkentse a hálózat okozta lagot / pontatlanságot. Ezt lehet konvertálni MIDI fájllá, és NBS fájllá is, illetve NBS fájlt is lehet konvertálni ebbe a csv formátumba, ami könnyebb összehasonlítást tesz lehetővé. Ez a jövőben hasznos lehet ennél a projektnél is, az eredeti és a felismert fájl összehasonlítására.
+[GitHub link.](https://github.com/4321ba/noteblock_music_yoinker) Ez egy saját projekt, ami egy Minecraft modból, és python scriptekből áll, note block-os zenék felvételére, egy saját, csv alapú formátumba. A mod elég fapados, a játékon belül hallott zenét önti egy csv fájlba. Ezután ezt python scriptekkel lehet sokféleképpen feldolgozni: összefűzni / átlagolni több felvételt ugyanarról a zenéről, hogy eltüntesse / csökkentse a hálózat okozta lagot / pontatlanságot. Ezt lehet konvertálni MIDI fájllá, és NBS fájllá is, illetve NBS fájlt is lehet konvertálni ebbe a csv formátumba, ami könnyebb összehasonlítást tesz lehetővé. Ez a jövőben hasznos lehet ennél a projektnél is, az eredeti és a felismert fájl összehasonlítására.
 
 Ezzel a programmal a Wynncraft nevű Minecraft szerver zenéjének jó részét "felvettem", és ez is [elérhető](https://github.com/4321ba/Wynncraft_Noteblock_OST). Ez jogi kérdéseket is felvet, bár én amellett szeretnék érvelni, hogy jogilag ne legyen különböző az, hogy egy zene milyen formátumban érhető el (mp3, midi vagy nbs pl.). A YouTube-on ezek a zenék Creative Commons Attribution license (reuse allowed) licensszel [érhetőek el](https://www.youtube.com/playlist?list=PLyqkjDCr8kbI3CjNZimiri8shU1GbfJ6E), hivatalos forrásból. Ez az adathalmaz a későbbiekben pontosság tesztelésére hasznos lehet, bár ők csak 5 hangszert használnak, viszont hangerőt is.
 
 ## Galaxy Jukebox
 
-[Ez](https://github.com/4321ba/Galaxy_Jukebox) is saját projekt, NBS fájlból képes olyan Minecraft-beli redstone áramkört létrehozni, ami az adott zenét lejátssza, a játékon belül.
+[GitHub link.](https://github.com/4321ba/Galaxy_Jukebox) Ez is saját projekt, NBS fájlból képes olyan Minecraft-beli redstone áramkört létrehozni, ami az adott zenét lejátssza, a játékon belül.
 
 ## Synthesijava
 
-Programozás alapjai 3 házi feladatom, a fentebb említett Synthesia másolata, MIDI fájlok vizualizációjára. Ez is elérhető [GitHubon](https://github.com/4321ba/synthesijava).
+[GitHub link.](https://github.com/4321ba/synthesijava) Programozás alapjai 3 házi feladatom, a fentebb említett Synthesia másolata, MIDI fájlok vizualizációjára.
+
+## Open Note Block Studio
+
+[GitHub link.](https://github.com/OpenNBS/OpenNoteBlockStudio) A célformátum (nbs) szerkesztője, Minecraft Note Block-os zenéket lehet vele szerkeszteni, létrehozni, megtekinteni, exportálni hullámos hanggá, és Minecraftban lejátszható redstone áramkörré is (bár ez a része több szempontból átdolgozásra szorul).
+
+## Nbswave
+
+[GitHub link.](https://github.com/Bentroen/nbswave) Az ONBS új hullámos exportere, mert a régi elég pontatlan, és a túlvezérlés sem megoldott.
 
 # Adatok formátuma
 
@@ -88,7 +96,50 @@ A kimenő fájlformátum a Note Block Studio saját fájlformátuma, az nbs, [it
 
 # Keresés módszere
 
+## Előfelismerés
+
+A könyvtári optimalizáló algoritmus állapotterének minimalizálása érdekében előzetesen megpróbáljuk felismerni azokat a hangszer-hangmagasság kombinációkat, ahol elképzelhető hang, és azokat, ahol nem. Ez úgy történik, hogy a hangminta spektrogramját kivonjuk a felismerendő zenerészlet spektrogramjából (elemenként), majd egy ReLU-szerű (f(x)=max(0,x)) függvényt engedünk rá, pixelenként (azaz minden adott időpillanat-frekvencia párosra). Majd a "hibákat" (vagy a négyzetüket) összeadjuk, és ez alapján egy threshold-dal döntjük el, hogy elfogadjuk-e az adott hang létezésének lehetőségét. Ez a ReLU azért kell, hogy azt ne büntessük, ha sok hang van a zenerészletben, azt viszont büntessük, ha pont az a frekvencia, aminek ott kéne lennie, az nincs ott.
+
+## Optimalizálás
+
+Miután meghatároztuk azt a pár hangszer-hangmagasság párost, amik potenciálisan szólnak az adott tick-ben, egy könyvtári optimalizáló algoritmussal meghatározzuk a hiba minimumához tartozó állapotot, ahol a hiba a két spektrogram különbségének abszolútértékeinek összege (~MAE), az állapot pedig a hangerő hangonként, leginkább 0 és 1 között.
+
+Optimalizáló algoritmusok között a Particle Swarm Optimization-t, és a Nelder-Mead módszert próbáltam, amik közül az utóbbi tűnt jobbnak, ezt lentebb kifejtem. Azért ezek kerültek szóba, mert komplex számítás eredménye a hiba, ami nem deriválható, vagy legalábbis nagyon bonyolult. A Nelder-Mead módszer lényege: n dimenzió esetén n+1 db "csúcspont"-tal meghatároz egy n-dimenziós tetraédert, majd lépésenként a csúcspontokat transzformálja: egyet odébbtol (növelve, csökketve, vagy vetítve), vagy közelebb viszi a csúcspontokat egymáshoz, stb., attól függően, hogy az adott pontokban milyen hibát kap az általunk megadott függvénytől.
+
 # Eredmények
 
+## Általános értékelés
+
+A program eléggé sikeresen fel tud ismerni egy, az nbswave-vel exportált zenét, amiben lehetnek harp, bass, snare és click hangszerek. Meg kell viszont adni perpillanat a túlvezérlés elleni kompenzáció mértékét, illetve a tps-t, hogy jó legyen a felismerés, ezeket később jó lenne alapértelmezetten felismerni. A felismerés további javítása, és a program tesztelése több zenével, illetve később többféle hangszerrel, szükséges. Továbbá szükséges egyéb exporterekkel, felvételi módszerekkel szerzett hangfájlokon történő tesztelés: túlvezérlés, apró hangmagasság-eltolódás, illetve időzítés-beli pontatlanság ellen jobban védjen. A program képes kihasználni a többszálúságot, és fordítási idejű optimalizáció kihasználásával elfogadható időn belül lefut, bár lenne értelme a további futásidő-optimalizációnak. A 8-9 éves intel laptopomon jelenleg körülbelül 2 perc alatt ismeri fel az 1 perces zenét.
+
+Eredeti:
+
+![Screenshot az eredeti zenéről](onbs_original.png)
+
+Felismert (ugyanaz a kép, mint fentebb):
+
+![Screenshot a felismert zenéről](onbs_layers.png)
+
+## Optimalizálási algoritmusok összehasonlítása
+
+TODO 2d grafikon: függvényhívások száma X hiba
+
 # Összefoglalás
+
+Összességében sikeresen analizáltuk a hullámos fájlt, találtunk adott időpillanatokban erős tippeket a szóló hangokra. Megismerkedtünk az nbs formátummal, és a Note Block-os zenék speciális tulajdonságaival.
+
+A továbbiakban a teljesség igénye nélkül az alábbi fejlesztési lehetőségek végrehajtása lenne előnyös:
+
+- több hangszer felismerése
+- tesztelés több zenével
+- felismerés pontosítása, például előző tickben felismert hangok hullámának hozzáadásával a mostani felismerés közben
+- Nelder-Mead optimalizációnak értelmesebb kezdeti érték adása az előfelismerés eredménye alapján
+- automata tps, és túlvezérlés-kompenzáció felismerés
+- parancssori kapcsolók a gyakran változtatandó paraméterekre
+- robusztusabb felismerés másfajta nbs to wave exporterek / módszerek által generált hangfájlokra
+- tesztelés más resource pack-kel / soundfonttal
+- futásidő optimalizálása
+- felismerés pontosságának mérése nagyobb adathalmazon, miután már kellően jó a felismerés
+- sztereó felismerés, egyszerre ugyanaz a hang többször
+- megpróbálni a layereket felismerni, amiken általában ugyanolyan hangerővel szerepelnek a hangok, ezen hangerők kerekítése a felismert hangerőre, és layer volume-ok használata
 

@@ -5,6 +5,7 @@ use crate::debug;
 use crate::wave::waveform_to_spectrogram;
 
 use argmin::core::State;
+use argmin_math::Rng;
 use babycat::{Signal, Waveform};
 
 
@@ -130,6 +131,25 @@ impl CostFunction for Opti<'_> {
     }
 }
 
+fn get_nm_solver(found_notes: &[Note]) -> NelderMead<Vec<f32>, f32> {
+    let param_number = found_notes.len();
+    let mut paramsvec_nm: Vec<Vec<f32>> = Vec::new();
+    for i in 0..=param_number {
+        paramsvec_nm.push(vec![1.0;param_number]);
+        if i < param_number {
+            paramsvec_nm[i][i] = 0.0;
+        }// else { paramsvec_nm[i] = vec![1.0;param_number]; }
+    }
+    let solverNM = NelderMead::new(paramsvec_nm)
+    .with_sd_tolerance(0.0001).unwrap();
+    solverNM
+}
+fn get_pso_solver(found_notes: &[Note]) -> ParticleSwarm<Vec<f32>, f32, rand::rngs::StdRng> {
+    let param_number = found_notes.len();
+    let solverPSO = ParticleSwarm::new((vec![0.0; param_number], vec![1.0; param_number]), 40); // TODO it could be bigger than 1.0
+    solverPSO
+}
+
 pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::SpectrogramSlice, found_notes: &[note::Note]) -> Vec<note::Note>  {
     if found_notes.len() == 0 {
         return Vec::new();
@@ -140,21 +160,9 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
     let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
-    let param_number = found_notes.len();
-    //let solverPSO = ParticleSwarm::new((vec![0.0; param_number], vec![1.0; param_number]), 40); // TODO it could be bigger than 1.0
+    let solver = get_nm_solver(found_notes);
 
-    let mut paramsvec_nm: Vec<Vec<f32>> = Vec::new();
-    for i in 0..=param_number {
-        paramsvec_nm.push(vec![1.0;param_number]);
-        if i < param_number {
-            paramsvec_nm[i][i] = 0.0;
-        }// else { paramsvec_nm[i] = vec![1.0;param_number]; }
-    }
-    let solverNM = NelderMead::new(paramsvec_nm)
-    .with_sd_tolerance(0.0001).unwrap();
-
-
-    let res = Executor::new(cost_function, solverNM)
+    let res = Executor::new(cost_function, solver)
         .configure(|state| state.max_iters(200))
         .add_observer(SlogLogger::term(), ObserverMode::Always).run().unwrap();
 
