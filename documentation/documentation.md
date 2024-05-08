@@ -122,7 +122,20 @@ Felismert (ugyanaz a kép, mint fentebb):
 
 ## Optimalizálási algoritmusok összehasonlítása
 
-TODO 2d grafikon: függvényhívások száma X hiba
+Az alábbi ábra a két kipróbált módszert (Nelder-Mead Method, és Particle Swarm Optimization) hasonlítja össze költségfüggvényhívások száma, és elért hiba alapján.
+
+![Diagram az optimalizációs módszerek összehasonlításáról](optimization_comparison.png)
+
+Természetesen mindkét módszer használatát lehetne tovább optimalizálni, jobb kezdeti értékekkel, PSO-nál jobb swarm-mérettel, a paraméterek finomhangolásával. De alapvetően a Nelder-Mead jóval gyorsabban, és jobb eredményt adott. Sőt, a PSO-t ezekkel a paraméterekkel hiába futtatom tovább, nem tud a grafikonon is szereplő hibánál jobb eredményt adni.
+
+Mindkét módszernél 200 iterációt futtattam, bár ez a két módszernél más-mást jelent. A NM a 311 függvényhívásával 1,607s alatt végzett (=193,5 hívás/s) és 0,02367-es minimum cost-ot ért el, míg a PSO a 8040db függvényhívásával 39,295s alatt (=204,6 hívás/s) 0,2434-es minimum costot ért el. Tehát ráadásul a hívások között a Nelder-Mead többet gondolkodott, ami ennél a problémánál előnyös, mivel elég drága a costfüggvény hívása.
+
+A megtalált értékek a következőképpen alakultak:
+
+| Megoldás | Nincs    | Van    | Nincs   | Nincs    | Van    | Nincs    | Nincs   | Van    | Van    | Van    | Van    |
+| -------- | -------- | ------ | ------- | -------- | ------ | -------- | ------- | ------ | ------ | ------ | ------ |
+| NM       | 0.007655 | 0.7186 | -0.0072 | -0.00057 | 0.7188 | 0.001538 | -0.0012 | 0.7197 | 0.7247 | 0.7165 | 0.7175 |
+| PSO      | 0.0      | 0.7189 | 0.0     | 0.0      | 0.7188 | 0.0      | 0.0     | 0.7184 | 1.0    | 0.7165 | 0.7195 |
 
 # Összefoglalás
 
