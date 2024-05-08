@@ -63,7 +63,7 @@ pub fn test_distances_for_instruments(spectrogram_slice: &note::SpectrogramSlice
             let sample_2dvec = &cache.spectrograms[instr_idx][pitch];
             //debug_save_as_image(&wave::subtract_2d_vecs(song_part, &sample_2dvec), &format!("{instr_idx}_pitch{pitch:02}.png"));
 
-            let TEMP_volume = 0.2; // TODO it was 0.5
+            let TEMP_volume = 0.5; // TODO it was 0.5
             let diff = calculate_assymetric_distance(song_part, &sample_2dvec, TEMP_volume);
             
             let silence = [vec![0.0; sample_2dvec[0].len()]; 1];
@@ -101,6 +101,7 @@ use argmin::solver::particleswarm::ParticleSwarm;
 use argmin::solver::neldermead::NelderMead;
 use argmin::core::observers::ObserverMode;
 use argmin_observer_slog::SlogLogger;
+use std::io::Write;
 struct Opti<'a> {
     cache: &'a note::CachedInstruments,
     multiplier: f32,
@@ -125,6 +126,10 @@ impl CostFunction for Opti<'_> {
         let found_part = &spectrogram_2dvec[0..self.hops_to_compare];
         assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
         let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0?
+        
+        print!("1");
+        std::io::stdout().flush().unwrap();
+        
         Ok(diff)
 
         //Ok((param[0]-0.34) *(param[0]-0.34)+ (param[1]-0.36) *(param[1]-0.36))
@@ -160,7 +165,7 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
     let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
-    let solver = get_nm_solver(found_notes);
+    let solver = get_pso_solver(found_notes);
 
     let res = Executor::new(cost_function, solver)
         .configure(|state| state.max_iters(200))
@@ -169,8 +174,8 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
     // Print Result
     println!("{res}");
 
-    //let found_positions = &res.state.get_param().unwrap().position; // PSO
-    let found_positions = &res.state.get_best_param().unwrap();//temp
+    let found_positions = &res.state.get_best_param().unwrap().position; // PSO
+    //let found_positions = &res.state.get_best_param().unwrap();//temp
 
 
 
