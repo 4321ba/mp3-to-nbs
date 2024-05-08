@@ -10,3 +10,9 @@ Cargo.lock
 **/*.rs.bk
 
 image.png
+out.nbs
+song_part.png
+test_diff_found_notes.png
+test_found_notes.wav
+wf1.wav
+wf2.wav
