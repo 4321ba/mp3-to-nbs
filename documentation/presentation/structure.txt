@@ -1,0 +1,18 @@
+Prezentáció vázlat:
+
+wave vs midi
+nbs
+programok
+
+videó: a minták, before-after (before wave-vel és nbs-sel(expected) is)
+
+motiváció
+adat formátuma
+konverzió, keresés módszere
+opti algok összehasonlítása
+eredmények, értékelés
+összefoglalás
+
+
+VIDEÓBA CREDIT FRIGIDUCK-NAK!! + zene címe
+mi melyik program
