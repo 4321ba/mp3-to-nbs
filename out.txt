@@ -1,0 +1,487 @@
+[2m2024-09-06T07:16:35.562695Z[0m [32m INFO[0m [2msymphonia_core::probe[0m[2m:[0m found the format marker [49, 44, 33] @ 0+2 bytes.    
+[2m2024-09-06T07:16:35.562897Z[0m [32m INFO[0m [2msymphonia_core::probe[0m[2m:[0m found the format marker [ff, fb] @ 45+2 bytes.    
+[2m2024-09-06T07:16:35.562980Z[0m [32m INFO[0m [2msymphonia_bundle_mp3::demuxer[0m[2m:[0m using xing header for duration    
+Loading Sounds/dbass.ogg
+[2m2024-09-06T07:16:35.792310Z[0m [32m INFO[0m [2msymphonia_core::probe[0m[2m:[0m found the format marker [4f, 67, 67, 53] @ 0+2 bytes.    
+[2m2024-09-06T07:16:35.792428Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m starting new physical stream    
+[2m2024-09-06T07:16:35.792449Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m selected vorbis mapper for stream with serial=0x711d1d3d    
+Loading Sounds/harp.ogg
+[2m2024-09-06T07:16:36.499512Z[0m [32m INFO[0m [2msymphonia_core::probe[0m[2m:[0m found the format marker [4f, 67, 67, 53] @ 0+2 bytes.    
+[2m2024-09-06T07:16:36.499574Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m starting new physical stream    
+[2m2024-09-06T07:16:36.499583Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m selected vorbis mapper for stream with serial=0x7d59b207    
+Loading Sounds/sdrum.ogg
+[2m2024-09-06T07:16:37.384809Z[0m [32m INFO[0m [2msymphonia_core::probe[0m[2m:[0m found the format marker [4f, 67, 67, 53] @ 0+2 bytes.    
+[2m2024-09-06T07:16:37.384875Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m starting new physical stream    
+[2m2024-09-06T07:16:37.384886Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m selected vorbis mapper for stream with serial=0x6648ace2    
+Loading Sounds/click.ogg
+[2m2024-09-06T07:16:37.506394Z[0m [32m INFO[0m [2msymphonia_core::probe[0m[2m:[0m found the format marker [4f, 67, 67, 53] @ 0+2 bytes.    
+[2m2024-09-06T07:16:37.506454Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m starting new physical stream    
+[2m2024-09-06T07:16:37.506466Z[0m [32m INFO[0m [2msymphonia_format_ogg::demuxer[0m[2m:[0m selected vorbis mapper for stream with serial=0x2dd2823d    
+Calculating spectrums for Sounds/dbass.ogg
+Calculating spectrums for Sounds/harp.ogg
+Calculating spectrums for Sounds/sdrum.ogg
+Calculating spectrums for Sounds/click.ogg
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 2
+
+instr idx: 0
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 0
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 2
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 0
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 0
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 0
+
+instr idx: 2
+
+instr idx: 1
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 2
+
+instr idx: 0
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 0
+
+instr idx: 2
+
+instr idx: 3
+
+instr idx: 1
+
+instr idx: 2
+
+instr idx: 3
