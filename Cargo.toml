@@ -30,3 +30,4 @@ rayon = "1.10.0"
 rand = "0.8.5"
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
+indicatif = { version = "0.17.8", features = ["rayon"] }

@@ -1,5 +1,6 @@
 use crate::debug;
 use crate::note;
+use crate::observer::TracingLogger;
 use crate::opti::Opti;
 use crate::wave;
 use crate::wave::waveform_to_spectrogram;
@@ -14,7 +15,6 @@ use argmin::core::observers::ObserverMode;
 use argmin::core::Executor;
 use argmin::solver::neldermead::NelderMead;
 use argmin::solver::particleswarm::ParticleSwarm;
-use argmin_observer_slog::SlogLogger;
 
 fn calculate_distance(
     song_part: &[Vec<f32>],
@@ -104,7 +104,7 @@ pub fn test_distances_for_instruments(
     debug_save_as_image(song_part, "song_part.png");
 
     for instr_idx in 0..note::INSTRUMENT_COUNT {
-        print!("\ninstr idx: {}\n", instr_idx);
+        // print!("\ninstr idx: {}\n", instr_idx);
 
         for pitch in 0..note::PITCH_COUNT {
             let sample_2dvec = &cache.spectrograms[instr_idx][pitch];
@@ -194,7 +194,8 @@ pub fn optimize(
 
     let res = Executor::new(cost_function, solver)
         .configure(|state| state.max_iters(200))
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        // .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(TracingLogger::new(), ObserverMode::Always)
         .run()
         .unwrap();
 

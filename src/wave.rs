@@ -125,15 +125,15 @@ pub fn get_interesting_hopcounts(spectrogram: &note::Spectrogram) -> Vec<usize> 
         .iter()
         .map(|v| v.iter().sum())
         .collect::<Vec<f32>>();
-    
+
     debug!("Amplitude sums: {:?}", sumvec);
-    
+
     let mut ret = Vec::new();
 
     if sumvec[0] > 0.1 {
         ret.push(0)
     } // TODO magic numbers everywhere xddd
-    
+
     for i in 0..(sumvec.len() - 1) {
         if (i < 1 || sumvec[i-1] * 1.2/* TODO magic number */ < sumvec[i])
             && (i >= sumvec.len() - 1

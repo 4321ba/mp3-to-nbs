@@ -14,12 +14,14 @@ extern crate tracing;
 
 use crate::wave::waveform_to_spectrogram;
 use babycat::{Signal, Waveform};
+use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
 pub mod cli;
 pub mod debug;
 pub mod nbs;
 pub mod note;
+pub mod observer;
 pub mod opti;
 pub mod optimize;
 pub mod wave;
@@ -82,6 +84,7 @@ pub fn parse_and_export(waveform: &Waveform) {
 
     let all_found_notes = hopcounts
         .par_iter()
+        .progress_count(hopcounts.len() as u64)
         .map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i))
         .collect();
 
@@ -90,13 +93,13 @@ pub fn parse_and_export(waveform: &Waveform) {
     //let tps = nbs::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
     let tps = 10.0; //TODO hardcoded for now
 
-    dbg!(tps);
-    dbg!(&hopcounts);
+    // dbg!(tps);
+    // dbg!(&hopcounts);
 
     let timestamps =
         nbs::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
 
-    dbg!(&timestamps);
+    // dbg!(&timestamps);
 
     nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);
 }
