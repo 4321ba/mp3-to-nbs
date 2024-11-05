@@ -16,10 +16,10 @@ codegen-units = 1
 panic = "abort"
 
 [dependencies]
-babycat = "0.0.14"
-spectrum-analyzer = "1.2.5"
-image = "0.24.2"
-clap = { version = "4.3.23", features = ["derive", "color"] }
+babycat = "0.0.15"
+spectrum-analyzer = "1.5.0"
+image = "0.25.2"
+clap = { version = "4.5.17", features = ["derive", "color"] } 
 argmin = "0.10.0"
 argmin-math = "0.4.0"
 argmin-observer-slog = "0.1.0"
