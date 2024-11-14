@@ -87,7 +87,28 @@ pub fn test_distances_for_instruments(spectrogram_slice: &note::SpectrogramSlice
 
 
 
+///FROM GPT, temp
+fn approximately_equal_2d(v1: &[Vec<f32>], v2: &[Vec<f32>], epsilon: f32) -> bool {
+    // First, check if the dimensions are the same
+    if v1.len() != v2.len() {
+        return false;
+    }
 
+    // Check each row for approximate equality
+    for (row1, row2) in v1.iter().zip(v2.iter()) {
+        if row1.len() != row2.len() {
+            return false;
+        }
+
+        for (el1, el2) in row1.iter().zip(row2.iter()) {
+            if (f32::abs(el1 - el2) >= epsilon) {
+                return false;
+            }
+        }
+    }
+
+    true
+}
 
 
 
@@ -122,7 +143,15 @@ impl CostFunction for Opti<'_> {
         let fft_size = 4096;
         let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024, self.hops_to_compare as isize);
         let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
+
+        let cx_spectrogram = wave::waveform_to_complex_spectrogram(&wf, fft_size, 1024, self.hops_to_compare as isize);
+        let real_from_cx = wave::complex_spectrogram_to_amplitude(&cx_spectrogram);
+        //println!("QWE {:?}", spectrogram_2dvec);
+        //println!("ASD {:?}", real_from_cx);
         let found_part = &spectrogram_2dvec[0..self.hops_to_compare];
+        let cut_part_from_cx = &real_from_cx[0..self.hops_to_compare];
+        assert!(approximately_equal_2d(cut_part_from_cx, &spectrogram_2dvec, 0.000001), "The complex-to-amplitude and spectrum-analyzer calculations differ!");
+
         assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
         let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0?
         Ok(diff)

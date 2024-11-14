@@ -4,6 +4,7 @@ mod wave;
 mod optimize;
 mod debug;
 mod nbs;
+mod complex_lib;
 
 fn max_of_slice(slice: &[f32]) -> &f32 {
     slice

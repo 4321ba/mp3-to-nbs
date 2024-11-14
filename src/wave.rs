@@ -14,11 +14,12 @@ pub fn import_sound_file(filename: &str) -> Waveform {
     waveform
 }
 
+use microfft::Complex32;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectrum};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::scaling::divide_by_N;
 
-pub fn transform_fourier(samples: &[f32], sampling_rate: u32) -> FrequencySpectrum {
+fn transform_fourier(samples: &[f32], sampling_rate: u32) -> FrequencySpectrum {
     // apply hann window for smoothing; length must be a power of 2 for the FFT
     // 2048 is a good starting point with 44100 kHz
     let hann_window = hann_window(samples);
@@ -35,6 +36,21 @@ pub fn transform_fourier(samples: &[f32], sampling_rate: u32) -> FrequencySpectr
     ).expect("Something went wrong with calculating fft")
 }
 
+use crate::complex_lib::samples_fft_to_complex_spectrum;
+pub fn transform_fourier_complex(samples: &[f32], sampling_rate: u32) -> Vec<Complex32> {
+    // apply hann window for smoothing; length must be a power of 2 for the FFT
+    // 2048 is a good starting point with 44100 kHz
+    let hann_window = hann_window(samples);
+    // calc spectrum
+    samples_fft_to_complex_spectrum(
+        // (windowed) samples
+        &hann_window,
+        // sampling rate
+        sampling_rate,
+    ).expect("Something went wrong with calculating fft")
+    
+}
+
 pub fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_size: usize, hop_count: isize/*<0 if full conversion*/) -> Vec<FrequencySpectrum> {
     let mut padded_samples: Vec<f32> = vec![0.0; fft_size / 2];
     padded_samples.extend(samples);
@@ -44,6 +60,18 @@ pub fn create_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop
     (0..last_sample).step_by(hop_size)
     .map(|begin| transform_fourier(&padded_samples[begin..begin+fft_size], sampling_rate))
     .collect::<Vec<FrequencySpectrum>>()
+}
+
+
+fn create_complex_spectrum(samples: &[f32], sampling_rate: u32, fft_size: usize, hop_size: usize, hop_count: isize/*<0 if full conversion*/) -> Vec<Vec<Complex32>> {
+    let mut padded_samples: Vec<f32> = vec![0.0; fft_size / 2];
+    padded_samples.extend(samples);
+    padded_samples.resize(max(samples.len() as isize, hop_size as isize*hop_count) as usize + fft_size, 0.0); // so that empty samples is converted well as well
+
+    let last_sample = if hop_count < 0 { samples.len() } else { hop_size * hop_count as usize };
+    (0..last_sample).step_by(hop_size)
+    .map(|begin| transform_fourier_complex(&padded_samples[begin..begin+fft_size], sampling_rate))
+    .collect::<Vec<Vec<Complex32>>>()
 }
 
 pub fn spectrum_to_2d_vec(spectrogram: &Vec<FrequencySpectrum>) -> Vec<Vec<f32>> {
@@ -70,6 +98,18 @@ pub fn waveform_to_spectrogram(wf: &Waveform, fft_size: usize, hop_size: usize) 
 pub fn waveform_to_spectrogram_countlimited(wf: &Waveform, fft_size: usize, hop_size: usize, hop_count: usize) -> note::Spectrogram {
     let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, hop_count as isize);
     spectrum_to_2d_vec(&spectrogram)
+}
+
+pub fn waveform_to_complex_spectrogram(wf: &Waveform, fft_size: usize, hop_size: usize, hop_count: isize) -> Vec<Vec<Complex32>> {
+    create_complex_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, hop_count)
+}
+
+pub fn complex_spectrogram_to_amplitude(spectrogram: &Vec<Vec<Complex32>>) -> Vec<Vec<f32>> {
+    spectrogram.into_iter().map(
+        |spectrum| spectrum.into_iter().map(
+            |cx| (cx.re*cx.re + cx.im*cx.im).sqrt()
+        ).collect()
+    ).collect()
 }
 
 pub fn get_interesting_hopcounts(spectrogram: &note::Spectrogram) -> Vec<usize> {

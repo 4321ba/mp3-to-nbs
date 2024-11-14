@@ -106,9 +106,9 @@ pub fn add_notes_together(notes: &[Note], cache: &CachedInstruments, multiplier:
         let samples_to_add = cache.waveforms[note.instrument_id][note.pitch].to_interleaved_samples();
         for i in 0..samples_to_add.len() {
             samples[i] += samples_to_add[i] * note.volume * multiplier;
-            if samples[i] > 1.0 {
+            /*if samples[i] > 1.0 {
                 samples[i] = 1.0;
-            }
+            }*/
         }
     }
     assert_eq!(cache.waveforms[0][0].num_channels(), 1, "We are expecting everything to be mono for now.");
