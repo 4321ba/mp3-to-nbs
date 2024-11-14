@@ -90,12 +90,12 @@ pub fn spectrum_to_2d_vec(spectrogram: &Vec<FrequencySpectrum>) -> Vec<Vec<f32>>
     array
 }
 
-pub fn waveform_to_spectrogram(wf: &Waveform, fft_size: usize, hop_size: usize) -> note::Spectrogram {
+pub fn waveform_to_spectrogram(wf: &Waveform, fft_size: usize, hop_size: usize) -> note::AmplitudeSpectrogram {
     let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, -1);
     spectrum_to_2d_vec(&spectrogram)
 }
 
-pub fn waveform_to_spectrogram_countlimited(wf: &Waveform, fft_size: usize, hop_size: usize, hop_count: usize) -> note::Spectrogram {
+pub fn waveform_to_spectrogram_countlimited(wf: &Waveform, fft_size: usize, hop_size: usize, hop_count: usize) -> note::AmplitudeSpectrogram {
     let spectrogram = create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, hop_count as isize);
     spectrum_to_2d_vec(&spectrogram)
 }
@@ -112,7 +112,7 @@ pub fn complex_spectrogram_to_amplitude(spectrogram: &Vec<Vec<Complex32>>) -> Ve
     ).collect()
 }
 
-pub fn get_interesting_hopcounts(spectrogram: &note::Spectrogram) -> Vec<usize> {
+pub fn get_interesting_hopcounts(spectrogram: &note::AmplitudeSpectrogram) -> Vec<usize> {
     let sumvec = spectrogram.iter().map(|v| v.iter().sum()).collect::<Vec<f32>>();
     println!("Amplitude sums: {:?}", sumvec);
     let mut ret = Vec::new();

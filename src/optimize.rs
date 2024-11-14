@@ -60,7 +60,7 @@ pub fn test_distances_for_instruments(spectrogram_slice: &note::SpectrogramSlice
     for instr_idx in 0..note::INSTRUMENT_COUNT {
         print!("\ninstr idx: {}\n", instr_idx);
         for pitch in 0..note::PITCH_COUNT {
-            let sample_2dvec = &cache.spectrograms[instr_idx][pitch];
+            let sample_2dvec = &cache.amplitude_spectrograms[instr_idx][pitch];
             //debug_save_as_image(&wave::subtract_2d_vecs(song_part, &sample_2dvec), &format!("{instr_idx}_pitch{pitch:02}.png"));
 
             let TEMP_volume = 0.2; // TODO it was 0.5
@@ -144,16 +144,30 @@ impl CostFunction for Opti<'_> {
         let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024, self.hops_to_compare as isize);
         let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
 
-        let cx_spectrogram = wave::waveform_to_complex_spectrogram(&wf, fft_size, 1024, self.hops_to_compare as isize);
-        let real_from_cx = wave::complex_spectrogram_to_amplitude(&cx_spectrogram);
+        let added_cx_sptr = note::add_cx_spectrograms(self.found_notes, param, self.cache, self.multiplier);
+        let real_from_cx = wave::complex_spectrogram_to_amplitude(&added_cx_sptr);
         //println!("QWE {:?}", spectrogram_2dvec);
         //println!("ASD {:?}", real_from_cx);
+        let mut qwe = vec![vec![0.0.into(); real_from_cx[0].len()]; 10];
         let found_part = &spectrogram_2dvec[0..self.hops_to_compare];
-        let cut_part_from_cx = &real_from_cx[0..self.hops_to_compare];
-        assert!(approximately_equal_2d(cut_part_from_cx, &spectrogram_2dvec, 0.000001), "The complex-to-amplitude and spectrum-analyzer calculations differ!");
+        let cut_part_from_cx = if real_from_cx.len()>=10 {
+            &real_from_cx[0..self.hops_to_compare]
+        } else {
+            for (i, row) in real_from_cx.iter().enumerate() {
+                qwe[i] = row.clone();
+            }
+            &qwe
+        };
+        //debug::debug_save_as_image(cut_part_from_cx, "TESTcut_part_from_cx.png");
+        //debug::debug_save_as_image(&spectrogram_2dvec, "TESTspec2d.png");
+
+        assert!(approximately_equal_2d(cut_part_from_cx, &spectrogram_2dvec, 0.0001), "The complex-to-amplitude and spectrum-analyzer calculations differ!");
 
         assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
         let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0?
+
+
+
         Ok(diff)
 
         //Ok((param[0]-0.34) *(param[0]-0.34)+ (param[1]-0.36) *(param[1]-0.36))
@@ -216,7 +230,7 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
 }
 
-pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::Spectrogram, start_hop: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
+pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
     let found_notes = test_distances_for_instruments(&spectrogram[start_hop..], &cache);
     let better_found_notes = optimize(&cache, &spectrogram[start_hop..], &found_notes);
     better_found_notes

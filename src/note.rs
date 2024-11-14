@@ -32,13 +32,16 @@ pub const INSTRUMENT_COUNT: usize = INSTRUMENT_FILENAMES.len();
 pub const PITCH_COUNT: usize = 25;
 
 pub type SpectrogramSlice = [Vec<f32>];
-pub type Spectrogram = Vec<Vec<f32>>;
+pub type AmplitudeSpectrogram = Vec<Vec<f32>>;
+pub type ComplexSpectrogram = Vec<Vec<Complex32>>;
 
 use babycat::Waveform;
 use babycat::Signal;
+use microfft::Complex32;
 pub struct CachedInstruments {
     pub waveforms: [Vec<Waveform>; INSTRUMENT_COUNT], // Vec will be PITCH_COUNT long; Waveform hz should be the same
-    pub spectrograms: [Vec<Spectrogram>; INSTRUMENT_COUNT],
+    pub complex_spectrograms: [Vec<ComplexSpectrogram>; INSTRUMENT_COUNT],
+    pub amplitude_spectrograms: [Vec<AmplitudeSpectrogram>; INSTRUMENT_COUNT],
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -57,15 +60,19 @@ pub fn get_volume_from_state_space(nss: &NoteStateSpace, instrument_id: usize, p
 }
 
 use crate::wave;
+use crate::wave::complex_spectrogram_to_amplitude;
+use crate::wave::waveform_to_complex_spectrogram;
 pub fn cache_instruments() -> CachedInstruments {
     let fft_size = 4096;
     let hop_size = 1024;
 
     const WAVEFORM_VEC: Vec<Waveform> = Vec::new();
-    const SPECTROGRAM_VEC: Vec<Spectrogram> = Vec::new();
+    const A_SPECTROGRAM_VEC: Vec<AmplitudeSpectrogram> = Vec::new();
+    const C_SPECTROGRAM_VEC: Vec<ComplexSpectrogram> = Vec::new();
     let mut cached_instruments: CachedInstruments = CachedInstruments {
         waveforms: [WAVEFORM_VEC; INSTRUMENT_COUNT],
-        spectrograms: [SPECTROGRAM_VEC; INSTRUMENT_COUNT],
+        amplitude_spectrograms: [A_SPECTROGRAM_VEC; INSTRUMENT_COUNT],
+        complex_spectrograms: [C_SPECTROGRAM_VEC; INSTRUMENT_COUNT],
     };
     
     for instr_idx in 0..INSTRUMENT_COUNT {
@@ -81,10 +88,10 @@ pub fn cache_instruments() -> CachedInstruments {
         print!("Calculating spectrums for {}\n", INSTRUMENT_FILENAMES[instr_idx]);
         for pitch in 0..PITCH_COUNT {
             let sample_wf_diff_pitch = &cached_instruments.waveforms[instr_idx][pitch];
-            let sample_spectrogram = wave::create_spectrum(
-                sample_wf_diff_pitch.to_interleaved_samples(), sample_wf_diff_pitch.frame_rate_hz(), fft_size, hop_size, -1);
-            let sample_2dvec = wave::spectrum_to_2d_vec(&sample_spectrogram);
-            cached_instruments.spectrograms[instr_idx].push(sample_2dvec);
+            let complex_spectrogram = waveform_to_complex_spectrogram(sample_wf_diff_pitch, fft_size, hop_size, -1);
+            let amplitude_spectrogram = complex_spectrogram_to_amplitude(&complex_spectrogram);
+            cached_instruments.complex_spectrograms[instr_idx].push(complex_spectrogram);
+            cached_instruments.amplitude_spectrograms[instr_idx].push(amplitude_spectrogram);
         }
     }
     cached_instruments
@@ -130,4 +137,32 @@ pub fn add_notes_together_merge_from_stsp(notes: &[Note], volumes: &[f32], cache
         notes_vec.push(Note { instrument_id: notes[idx].instrument_id, pitch: notes[idx].pitch, volume: volumes[idx] })
     }
     add_notes_together(&notes_vec, cache, multiplier)
+}
+
+
+pub fn add_cx_spectrograms(notes: &[Note], volume_override: &[f32], cache: &CachedInstruments, multiplier: f32) -> ComplexSpectrogram {
+    if notes.len() == 0 { 
+        return vec![vec![0.0.into(); cache.complex_spectrograms[0][0][0].len()]; 1];
+    }
+
+    let mut notes_vec: Vec<Note> = Vec::new();
+    for idx in 0..notes.len() {
+        notes_vec.push(Note { instrument_id: notes[idx].instrument_id, pitch: notes[idx].pitch, volume: volume_override[idx] })
+    }
+
+    let max_len_note = notes_vec.iter().max_by_key(
+        |note| cache.complex_spectrograms[note.instrument_id][note.pitch].len()
+    ).unwrap();
+    let max_width = cache.complex_spectrograms[max_len_note.instrument_id][max_len_note.pitch].len();
+    let height = cache.complex_spectrograms[0][0][0].len();
+    let mut ret = vec![vec![0.0.into(); height]; max_width];
+    for x in 0..max_width {
+        for y in 0..height {
+            for note in &notes_vec {
+                ret[x][y] += match cache.complex_spectrograms[note.instrument_id][note.pitch].get(x)
+                 { Some(v) => v[y] * note.volume * multiplier, None => 0.0.into() };
+            }
+        }
+    }
+    ret
 }
