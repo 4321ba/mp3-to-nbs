@@ -135,42 +135,16 @@ impl CostFunction for Opti<'_> {
     fn cost(&self, param: &Self::Param) -> Result<Self::Output, Error> {
 
         assert_eq!(param.len(), self.found_notes.len(), "Volume guess vec should be as long as the notes vec to guess");
-        
-        //for nelder-mead
-        //if param.iter().any(|x| *x < 0.0) {return Ok(1000.0);} // very expensive
-        
-        let wf = note::add_notes_together_merge_from_stsp(self.found_notes, param, self.cache, self.multiplier); //TODO only add the necessary length together
-        let fft_size = 4096;
-        let spectrogram = wave::create_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, 1024, self.hops_to_compare as isize);
-        let spectrogram_2dvec = wave::spectrum_to_2d_vec(&spectrogram);
+        let added_spectrogram = note::add_cx_spectrograms(self.found_notes, param, self.cache, self.multiplier); //TODO limit ide??
+        let amplitude_spectrogram = wave::complex_spectrogram_to_amplitude(&added_spectrogram);
+        let found_part = &amplitude_spectrogram[0..std::cmp::min(self.hops_to_compare, amplitude_spectrogram.len())];
 
-        let added_cx_sptr = note::add_cx_spectrograms(self.found_notes, param, self.cache, self.multiplier);
-        let real_from_cx = wave::complex_spectrogram_to_amplitude(&added_cx_sptr);
-        //println!("QWE {:?}", spectrogram_2dvec);
-        //println!("ASD {:?}", real_from_cx);
-        let mut qwe = vec![vec![0.0.into(); real_from_cx[0].len()]; 10];
-        let found_part = &spectrogram_2dvec[0..self.hops_to_compare];
-        let cut_part_from_cx = if real_from_cx.len()>=10 {
-            &real_from_cx[0..self.hops_to_compare]
-        } else {
-            for (i, row) in real_from_cx.iter().enumerate() {
-                qwe[i] = row.clone();
-            }
-            &qwe
-        };
-        //debug::debug_save_as_image(cut_part_from_cx, "TESTcut_part_from_cx.png");
-        //debug::debug_save_as_image(&spectrogram_2dvec, "TESTspec2d.png");
-
-        assert!(approximately_equal_2d(cut_part_from_cx, &spectrogram_2dvec, 0.0001), "The complex-to-amplitude and spectrum-analyzer calculations differ!");
-
-        assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
-        let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0?
+        //assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
+        let diff = calculate_symetric_distance(self.song_part, found_part, 1.0);//TODO 1.0??? why / why not multiplier wtf? and why anyway?
 
 
 
         Ok(diff)
-
-        //Ok((param[0]-0.34) *(param[0]-0.34)+ (param[1]-0.36) *(param[1]-0.36))
     }
 }
 
