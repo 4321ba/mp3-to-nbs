@@ -112,28 +112,9 @@ pub fn complex_spectrogram_to_amplitude(spectrogram: &Vec<Vec<Complex32>>) -> Ve
     ).collect()
 }
 
-pub fn get_interesting_hopcounts(spectrogram: &note::AmplitudeSpectrogram) -> Vec<usize> {
-    let sumvec = spectrogram.iter().map(|v| v.iter().sum()).collect::<Vec<f32>>();
-    println!("Amplitude sums: {:?}", sumvec);
-    let mut ret = Vec::new();
 
-    if sumvec[0] > 0.1 { ret.push(0) } // TODO magic numbers everywhere xddd
-    for i in 0..(sumvec.len()-1) {
-        if (i < 1 || sumvec[i-1] * 1.2/* TODO magic number */ < sumvec[i])
-            && (i >= sumvec.len()-1 || i < 1 || sumvec[i] - sumvec[i-1] > sumvec[i+1] - sumvec[i])
-            && (ret.len() < 1 || (ret[ret.len()-1] as i32) < i as i32-2) {
-            ret.push(i);
-        }
-    }
 
-    //println!("Interesting hopcounts: {:?}", ret);
-    println!("Interesting hopcounts:");
-    for i in &ret {
-        print!("{}: {};   ", i, sumvec[*i]);
-    }
-    println!();
-    ret
-}
+
 
 
 

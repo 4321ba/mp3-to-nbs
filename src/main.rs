@@ -5,6 +5,7 @@ mod optimize;
 mod debug;
 mod nbs;
 mod complex_lib;
+mod tempo;
 
 fn max_of_slice(slice: &[f32]) -> &f32 {
     slice
@@ -71,29 +72,45 @@ fn main() {
     
     let waveform = wave::import_sound_file(&args.input_file);
 
-    let cache = note::cache_instruments();
+
+    //let cache = note::cache_instruments();
     //test_main(&waveform);
     
-    let hopcounts = wave::get_interesting_hopcounts(&waveform_to_spectrogram(&waveform, 4096, 1024));
+    let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
+
+    let hopcounts = tempo::get_interesting_hopcounts(&spectrogram);
     //let hopcounts2: &[usize] = &hopcounts;
 
-    let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
-    /*
-    let mut all_found_notes = Vec::new();
-    for i in &hopcounts { // TODO parallelization
-        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, *i);
-        println!("Found notes: {:?}", notes);
-        all_found_notes.push(notes);
-    }*/
-    let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
+    let tps2 = tempo::guess_tps_aubio(&waveform);
+    let tps3 = tempo::guess_exact_tps(&hopcounts, 1024, waveform.frame_rate_hz(), tps2);
 
+    let tps = tempo::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
+    //let tps = 10.0;//TODO hardcoded for now
+    dbg!(tps);
+    dbg!(tps2);
+    dbg!(tps3);
+
+/*
+    //let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
+    let mut all_found_notes = Vec::new();
+    let mut accumulator_spectrogram = Vec::new();
+    for i in &hopcounts { // TODO parallelization
+        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, *i, &accumulator_spectrogram);
+        println!("Found notes: {:?}", notes);
+
+        let mut padded_spectrogram: note::ComplexSpectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; *i];
+        padded_spectrogram.extend(note::add_note_spectrograms(&notes, &Vec::new(), &cache, 1.0));
+        accumulator_spectrogram = note::add_spectrograms(&padded_spectrogram, &accumulator_spectrogram);
+
+        debug::debug_save_as_image(&wave::complex_spectrogram_to_amplitude(&accumulator_spectrogram), "accumulated.png");
+
+        all_found_notes.push(notes);
+    }
+    
     println!("Found all notes: {:?}", all_found_notes);
 
-    //let tps = nbs::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
-    let tps = 10.0;//TODO hardcoded for now
-    dbg!(tps);
     dbg!(&hopcounts);
-    let timestamps = nbs::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
+    let timestamps = tempo::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
     dbg!(&timestamps);
-    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);
+    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);*/
 }

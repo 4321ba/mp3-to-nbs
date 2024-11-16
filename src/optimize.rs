@@ -7,6 +7,7 @@ use crate::wave::waveform_to_spectrogram;
 use argmin::core::State;
 use argmin_math::Rng;
 use babycat::{Signal, Waveform};
+use microfft::Complex32;
 
 
 
@@ -126,6 +127,7 @@ struct Opti<'a> {
     cache: &'a note::CachedInstruments,
     multiplier: f32,
     song_part: &'a note::SpectrogramSlice,
+    previous_part: &'a [Vec<Complex32>],
     found_notes: &'a [note::Note],
     hops_to_compare: usize,
 }
@@ -135,8 +137,9 @@ impl CostFunction for Opti<'_> {
     fn cost(&self, param: &Self::Param) -> Result<Self::Output, Error> {
 
         assert_eq!(param.len(), self.found_notes.len(), "Volume guess vec should be as long as the notes vec to guess");
-        let added_spectrogram = note::add_cx_spectrograms(self.found_notes, param, self.cache, self.multiplier); //TODO limit ide??
-        let amplitude_spectrogram = wave::complex_spectrogram_to_amplitude(&added_spectrogram);
+        let added_spectrogram = note::add_note_spectrograms(self.found_notes, param, self.cache, self.multiplier); //TODO limit ide??
+        let with_previous = note::add_spectrograms(&added_spectrogram, self.previous_part);
+        let amplitude_spectrogram = wave::complex_spectrogram_to_amplitude(&with_previous);
         let found_part = &amplitude_spectrogram[0..std::cmp::min(self.hops_to_compare, amplitude_spectrogram.len())];
 
         //assert_eq!(found_part.len(), spectrogram_2dvec.len(), "The count limit should have been applied previously as well, to save performance!");
@@ -167,15 +170,16 @@ fn get_pso_solver(found_notes: &[Note]) -> ParticleSwarm<Vec<f32>, f32, rand::rn
     solverPSO
 }
 
-pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::SpectrogramSlice, found_notes: &[note::Note]) -> Vec<note::Note>  {
+pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::SpectrogramSlice, found_notes: &[note::Note], previous_part: &[Vec<Complex32>]) -> Vec<note::Note>  {
     if found_notes.len() == 0 {
         return Vec::new();
     }
     let hopstocomp = 10;//TODO ..10?? it depends on self.song_part.len() as well
     let spectrogram = &spectrogram_slice[0..hopstocomp];
     assert_eq!(spectrogram.len(), hopstocomp, "Just to make sure the above function works well - nevermind it got replaced");
+    let previous = &previous_part[0..std::cmp::min(hopstocomp, previous_part.len())];
 
-    let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
+    let cost_function = Opti {cache, multiplier: 1.0, song_part: spectrogram, previous_part: previous, found_notes, hops_to_compare: hopstocomp};//TODO multiplier?
 
     let solver = get_nm_solver(found_notes);
 
@@ -195,6 +199,7 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
     debug_save_as_image(&wave::subtract_2d_vecs(
         spectrogram, &waveform_to_spectrogram(&guess_wf, 4096, 1024))[0..hopstocomp], 
         "test_diff_found_notes.png");
+        debug_save_as_image(&spectrogram[0..hopstocomp], "test_orig_notes.png");
 
     let mut owned_notes: Vec<Note> = found_notes.to_vec();
     for i in 0..owned_notes.len() {
@@ -204,9 +209,14 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
 }
 
-pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
+pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize, previous_part: &[Vec<Complex32>]) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
     let found_notes = test_distances_for_instruments(&spectrogram[start_hop..], &cache);
-    let better_found_notes = optimize(&cache, &spectrogram[start_hop..], &found_notes);
+    let previous = if previous_part.len() < start_hop {
+        &vec![vec![0.0.into();previous_part[0].len()];1]
+    } else {
+        &previous_part[start_hop..]
+    };
+    let better_found_notes = optimize(&cache, &spectrogram[start_hop..], &found_notes, previous);
     better_found_notes
 }
 //TODO: overamplification and bpm as parameters at first, and try to guess them later; tuning as well???

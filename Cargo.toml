@@ -27,6 +27,7 @@ argmin-math = "0.4.0"
 argmin-observer-slog = "0.1.0"
 nbs-rs = "0.1.1"
 phf = { version = "0.11.2", features = ["macros"] }
-# aubio = "0.2.1"
 rayon = "1.10.0"
 rand = "0.8.5"
+
+aubio = "0.2.1"

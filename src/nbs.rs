@@ -28,31 +28,6 @@ static COUNTRIES: phf::Map<&str, nbs::noteblocks::instrument::Instrument> = phf_
     "Sounds/xylobone.ogg" => instrument::XYLOPHONE,
 };
 
-pub fn guess_tps(hopcounts: &Vec<usize>, hop_size: usize, frame_rate_hz: u32) -> f64 {
-    // https://stackoverflow.com/questions/75178232/how-to-get-the-adjacent-difference-of-a-vec
-    let mut diff: Vec<usize> = hopcounts.windows(2).map(|s| s[1] - s[0]).collect();
-    //dbg!(diff);
-    // inefficient and not so correct median implementation
-    diff.sort();
-    let median = diff[diff.len() / 2];
-    //(median, frame_rate_hz as f64 / (hop_size * median) as f64)
-    let tps = frame_rate_hz as f64 / (hop_size * median) as f64;
-    ((tps * 4.0 + 0.5) as u32) as f64 / 4.0 // rounding to 0.25
-}
-
-pub fn convert_hopcounts_to_ticks(hopcounts: &Vec<usize>, tps: f64, hop_size: usize, frame_rate_hz: u32) -> Vec<usize> {
-    let diff: Vec<usize> = hopcounts.windows(2).map(|s| s[1] - s[0]).collect();
-    //hopcounts.iter().map(|c| ((frame_rate_hz as f64 / (*c * hop_size) as f64) / tps + 0.5) as usize).collect()
-    let mut tickdiff: Vec<usize> = diff.iter().map(|c| ((*c * hop_size) as f64 / frame_rate_hz as f64 * tps + 0.5) as usize).collect();
-    // https://users.rust-lang.org/t/inplace-cumulative-sum-using-iterator/56532
-    let mut acc = 0usize;
-    for t in &mut tickdiff {
-        acc += *t;
-        *t = acc;
-    }
-    tickdiff.insert(0, 0);
-    tickdiff
-}
 
 pub fn clean_quiet_notes(notes: &Vec<Vec<crate::note::Note>>) -> Vec<Vec<crate::note::Note>> {
     let mut ret = Vec::new();

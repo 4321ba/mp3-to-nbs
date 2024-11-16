@@ -140,15 +140,16 @@ pub fn add_notes_together_merge_from_stsp(notes: &[Note], volumes: &[f32], cache
 }
 
 
-pub fn add_cx_spectrograms(notes: &[Note], volume_override: &[f32], cache: &CachedInstruments, multiplier: f32) -> ComplexSpectrogram {
+pub fn add_note_spectrograms(notes: &[Note], volume_override: &[f32], cache: &CachedInstruments, multiplier: f32) -> ComplexSpectrogram {
     if notes.len() == 0 { 
         return vec![vec![0.0.into(); cache.complex_spectrograms[0][0][0].len()]; 1];
     }
 
-    let mut notes_vec: Vec<Note> = Vec::new();
-    for idx in 0..notes.len() {
-        notes_vec.push(Note { instrument_id: notes[idx].instrument_id, pitch: notes[idx].pitch, volume: volume_override[idx] })
-    }
+    let notes_vec: Vec<Note> = if volume_override.len() > 0 {
+        (0..notes.len()).map(|idx| Note { instrument_id: notes[idx].instrument_id, pitch: notes[idx].pitch, volume: volume_override[idx] }).collect()
+    } else {
+        notes.to_vec()
+    };
 
     let max_len_note = notes_vec.iter().max_by_key(
         |note| cache.complex_spectrograms[note.instrument_id][note.pitch].len()
@@ -166,3 +167,22 @@ pub fn add_cx_spectrograms(notes: &[Note], volume_override: &[f32], cache: &Cach
     }
     ret
 }
+
+
+
+pub fn add_spectrograms(one: &[Vec<Complex32>], other: &[Vec<Complex32>]) -> ComplexSpectrogram {
+    let bigger_width = std::cmp::max(one.len(), other.len());
+    let height = one[0].len();
+    assert!(other.len() == 0 || height == other[0].len()); // though dfferent vectors could still be different sizes
+    let mut ret = vec![vec![0.0.into(); height]; bigger_width];
+    for x in 0..bigger_width {
+        for y in 0..height {
+            let one_val = match one.get(x) { Some(v) => v[y], None => 0.0.into() };
+            let other_val = match other.get(x) { Some(v) => v[y], None => 0.0.into() };
+            ret[x][y] = one_val + other_val;
+        }
+    }
+    ret
+
+}
+
