@@ -194,10 +194,12 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
     let found_positions = &res.state.get_best_param().unwrap();//temp
 
 
-
-    let guess_wf = note::add_notes_together_merge_from_stsp(found_notes, found_positions, cache, 1.0);
+    let added_spectrogram = note::add_note_spectrograms(found_notes, &found_positions, cache, 1.0);
+    let with_previous = note::add_spectrograms(&added_spectrogram, previous_part);
+    let amplitude_spectrogram = wave::complex_spectrogram_to_amplitude(&with_previous);
+    let found_part = &amplitude_spectrogram[0..std::cmp::min(hopstocomp, amplitude_spectrogram.len())];
     debug_save_as_image(&wave::subtract_2d_vecs(
-        spectrogram, &waveform_to_spectrogram(&guess_wf, 4096, 1024))[0..hopstocomp], 
+        spectrogram, &found_part), 
         "test_diff_found_notes.png");
         debug_save_as_image(&spectrogram[0..hopstocomp], "test_orig_notes.png");
 

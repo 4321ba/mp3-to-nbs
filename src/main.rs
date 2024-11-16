@@ -61,6 +61,9 @@ fn test_main(waveform: &Waveform) {
 
 
 use clap::Parser;
+use tempo::convert_onsets_to_hopcounts;
+use tempo::convert_onsets_to_hopcounts_evenly;
+use tempo::get_onsets_aubio;
 use crate::wave::waveform_to_spectrogram;
 use crate::{cli::Args, note::Note};
 use rayon::prelude::*;
@@ -71,29 +74,34 @@ fn main() {
 
     
     let waveform = wave::import_sound_file(&args.input_file);
+    dbg!(&waveform.to_interleaved_samples()[0..30]);
 
-
-    //let cache = note::cache_instruments();
-    //test_main(&waveform);
     
     let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
 
-    let hopcounts = tempo::get_interesting_hopcounts(&spectrogram);
+    let hopcounts_old = tempo::get_interesting_hopcounts(&spectrogram);
     //let hopcounts2: &[usize] = &hopcounts;
 
     let tps2 = tempo::guess_tps_aubio(&waveform);
-    let tps3 = tempo::guess_exact_tps(&hopcounts, 1024, waveform.frame_rate_hz(), tps2);
+    let tps = tempo::guess_exact_tps(&hopcounts_old, 1024, waveform.frame_rate_hz(), tps2);
 
-    let tps = tempo::guess_tps(&hopcounts, 1024, waveform.frame_rate_hz());
+    let tps_old = tempo::guess_tps(&hopcounts_old, 1024, waveform.frame_rate_hz());
     //let tps = 10.0;//TODO hardcoded for now
-    dbg!(tps);
+    dbg!(tps_old);
     dbg!(tps2);
-    dbg!(tps3);
+    dbg!(tps);
+    let onsets = get_onsets_aubio(&waveform);
+    let hopcounts_notthateven = convert_onsets_to_hopcounts(&onsets, tps, 1024, waveform.frame_rate_hz());
+    //dbg!(&hopcounts);
+    let hopcounts = convert_onsets_to_hopcounts_evenly(&onsets, tps, 1024, waveform.frame_rate_hz());
+    dbg!(&hopcounts);
 
-/*
+    let cache = note::cache_instruments();
+    //test_main(&waveform);
+
     //let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
     let mut all_found_notes = Vec::new();
-    let mut accumulator_spectrogram = Vec::new();
+    let mut accumulator_spectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; 1];
     for i in &hopcounts { // TODO parallelization
         let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, *i, &accumulator_spectrogram);
         println!("Found notes: {:?}", notes);
@@ -112,5 +120,5 @@ fn main() {
     dbg!(&hopcounts);
     let timestamps = tempo::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
     dbg!(&timestamps);
-    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);*/
+    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);
 }
