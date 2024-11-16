@@ -61,9 +61,9 @@ fn test_main(waveform: &Waveform) {
 
 
 use clap::Parser;
-use tempo::convert_onsets_to_hopcounts;
-use tempo::convert_onsets_to_hopcounts_evenly;
+use tempo::even_out_onsets;
 use tempo::get_onsets_aubio;
+use tempo::onsets_to_hopcounts;
 use crate::wave::waveform_to_spectrogram;
 use crate::{cli::Args, note::Note};
 use rayon::prelude::*;
@@ -76,7 +76,7 @@ fn main() {
     let waveform = wave::import_sound_file(&args.input_file);
     dbg!(&waveform.to_interleaved_samples()[0..30]);
 
-    
+    let hop_size = 1024;
     let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
 
     let hopcounts_old = tempo::get_interesting_hopcounts(&spectrogram);
@@ -91,9 +91,10 @@ fn main() {
     dbg!(tps2);
     dbg!(tps);
     let onsets = get_onsets_aubio(&waveform);
-    let hopcounts_notthateven = convert_onsets_to_hopcounts(&onsets, tps, 1024, waveform.frame_rate_hz());
+    //let hopcounts_notthateven = convert_onsets_to_hopcounts_uneven_with_filler(&onsets, tps, 1024, waveform.frame_rate_hz());
     //dbg!(&hopcounts);
-    let hopcounts = convert_onsets_to_hopcounts_evenly(&onsets, tps, 1024, waveform.frame_rate_hz());
+    let evened_onsets = even_out_onsets(&onsets, tps, hop_size, waveform.frame_rate_hz());
+    let hopcounts = onsets_to_hopcounts(&evened_onsets, 1024);
     dbg!(&hopcounts);
 
     let cache = note::cache_instruments();
@@ -102,11 +103,12 @@ fn main() {
     //let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
     let mut all_found_notes = Vec::new();
     let mut accumulator_spectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; 1];
-    for i in &hopcounts { // TODO parallelization
-        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, *i, &accumulator_spectrogram);
+    for onset in &evened_onsets {
+        let hopcount = (*onset + hop_size / 2) / hop_size;
+        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, hopcount, &accumulator_spectrogram, &waveform, *onset);
         println!("Found notes: {:?}", notes);
 
-        let mut padded_spectrogram: note::ComplexSpectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; *i];
+        let mut padded_spectrogram: note::ComplexSpectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; hopcount];
         padded_spectrogram.extend(note::add_note_spectrograms(&notes, &Vec::new(), &cache, 1.0));
         accumulator_spectrogram = note::add_spectrograms(&padded_spectrogram, &accumulator_spectrogram);
 

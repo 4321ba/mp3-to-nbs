@@ -138,7 +138,7 @@ pub fn get_onsets_aubio(wf: &Waveform) -> Vec<usize> {
     ret
 }
 
-pub fn convert_onsets_to_hopcounts(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_hz: u32) -> Vec<usize> {
+pub fn convert_onsets_to_hopcounts_uneven_with_filler(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_hz: u32) -> Vec<usize> {
     let mut extended_onsets: Vec<usize> = onsets.windows(2)
         .flat_map(|w| {
             let tick_count = ((w[1] - w[0]) as f64 / frame_rate_hz as f64 * tps + 0.5) as usize;
@@ -150,7 +150,7 @@ pub fn convert_onsets_to_hopcounts(onsets: &[usize], tps: f64, hop_size: usize, 
     extended_onsets.into_iter().map(|o| (o + hop_size / 2) / hop_size).collect()
 }
 
-pub fn convert_onsets_to_hopcounts_evenly(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_hz: u32) -> Vec<usize> {
+pub fn even_out_onsets(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_hz: u32) -> Vec<usize> {
     let mut extended_onsets: Vec<usize> = onsets.windows(2)
         .flat_map(|w| {
             let tick_count = ((w[1] - w[0]) as f64 / frame_rate_hz as f64 * tps + 0.5) as usize;
@@ -171,8 +171,10 @@ pub fn convert_onsets_to_hopcounts_evenly(onsets: &[usize], tps: f64, hop_size: 
     dbg!(first_sample);
     dbg!(last_sample);
     let mod_sample_diff = (last_sample - first_sample) / (tick_count - 1) as f64;
-    (0..tick_count).map(|i| (first_sample + i as f64 * mod_sample_diff + 0.5) as usize)
-        .map(|o| (o + hop_size / 2) / hop_size).collect()
+    (0..tick_count).map(|i| (first_sample + i as f64 * mod_sample_diff + 0.5) as usize).collect()
+}
+pub fn onsets_to_hopcounts(onsets: &[usize], hop_size: usize) -> Vec<usize> {
+    onsets.into_iter().map(|o| (o + hop_size / 2) / hop_size).collect()
 }
 
 pub fn guess_exact_tps(hopcounts: &Vec<usize>, hop_size: usize, frame_rate_hz: u32, approx_tps: f64) -> f64 {

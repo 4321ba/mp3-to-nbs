@@ -211,14 +211,25 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
 }
 
-pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize, previous_part: &[Vec<Complex32>]) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
-    let found_notes = test_distances_for_instruments(&spectrogram[start_hop..], &cache);
+pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize, previous_part: &[Vec<Complex32>], wf: &Waveform, onset: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
+    let hopstocomp_bigger = 40; //TODO fftsize and hopsize as variables as well
+    if wf.to_interleaved_samples().len() <= onset + hopstocomp_bigger * 1024 {
+        return Vec::new();
+    }
+    let cut_wf = Waveform::from_interleaved_samples(
+        wf.frame_rate_hz(),
+        wf.num_channels(),
+        &wf.to_interleaved_samples()[onset..(onset+hopstocomp_bigger*1024)]
+    );
+    let cut_spectrogram = waveform_to_spectrogram(&cut_wf, 4096, 1024);
+
+    let found_notes = test_distances_for_instruments(&cut_spectrogram, &cache);
     let previous = if previous_part.len() < start_hop {
         &vec![vec![0.0.into();previous_part[0].len()];1]
     } else {
         &previous_part[start_hop..]
     };
-    let better_found_notes = optimize(&cache, &spectrogram[start_hop..], &found_notes, previous);
+    let better_found_notes = optimize(&cache, &cut_spectrogram, &found_notes, previous);
     better_found_notes
 }
 //TODO: overamplification and bpm as parameters at first, and try to guess them later; tuning as well???
