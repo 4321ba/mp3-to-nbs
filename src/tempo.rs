@@ -154,8 +154,7 @@ pub fn even_out_onsets(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_h
     let mut extended_onsets: Vec<usize> = onsets.windows(2)
         .flat_map(|w| {
             let tick_count = ((w[1] - w[0]) as f64 / frame_rate_hz as f64 * tps + 0.5) as usize;
-            let sample_diff = (w[1] - w[0]) / tick_count;
-            (0..tick_count).map(move |c| w[0] + c * sample_diff)
+            (0..tick_count).map(move |c| w[0] + c * ((w[1] - w[0]) / tick_count))
         })
         .collect();
     extended_onsets.push(*onsets.last().unwrap());
@@ -170,7 +169,7 @@ pub fn even_out_onsets(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_h
     dbg!(extended_onsets.last().unwrap());
     dbg!(first_sample);
     dbg!(last_sample);
-    let mod_first_sample = if first_sample >= 0.0 { first_sample } else { 0.0 };
+    let mod_first_sample = 0.0;// TODO //if first_sample >= 0.0 { first_sample } else { 0.0 };
     //let mod_sample_diff = (last_sample - first_sample) / (tick_count - 1) as f64;
     (0..tick_count).map(|i| (mod_first_sample + i as f64 * sample_diff + 0.5) as usize).collect()
 }
@@ -178,13 +177,13 @@ pub fn onsets_to_hopcounts(onsets: &[usize], hop_size: usize) -> Vec<usize> {
     onsets.into_iter().map(|o| (o + hop_size / 2) / hop_size).collect()
 }
 
-pub fn guess_exact_tps(hopcounts: &Vec<usize>, hop_size: usize, frame_rate_hz: u32, approx_tps: f64) -> f64 {
+pub fn guess_exact_tps(onsets: &Vec<usize>, hop_size: usize, frame_rate_hz: u32, approx_tps: f64) -> f64 {
     // https://stackoverflow.com/questions/75178232/how-to-get-the-adjacent-difference-of-a-vec
-    let tick_sum: usize = hopcounts
+    let tick_sum: usize = onsets
         .windows(2)
-        .map(|s| (((s[1] - s[0]) * hop_size) as f64 / frame_rate_hz as f64 * approx_tps + 0.5) as usize)
+        .map(|s| ((s[1] - s[0]) as f64 / frame_rate_hz as f64 * approx_tps + 0.5) as usize)
         .sum();
-    let tps = tick_sum as f64 / (((hopcounts.last().unwrap() - hopcounts[0]) * hop_size) as f64 / frame_rate_hz as f64);
+    let tps = tick_sum as f64 / ((onsets.last().unwrap() - onsets[0]) as f64 / frame_rate_hz as f64);
     dbg!(tps);
     ((tps * 4.0 + 0.5) as u32) as f64 / 4.0 // rounding to 0.25
 }

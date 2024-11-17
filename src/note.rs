@@ -1,31 +1,31 @@
 
 // index is the ID of the instrument
 pub const INSTRUMENT_FILENAMES: &[&str] = &[
-    "Sounds/dbass.ogg",
-    "Sounds/harp.ogg",
-    //"Sounds/pling.ogg",
-    "Sounds/sdrum.ogg",
-    //"Sounds/bdrum.ogg",
-    "Sounds/click.ogg",
+    "dbass.ogg",
+    "harp.ogg",
+    //"pling.ogg",
+    "sdrum.ogg",
+    //"bdrum.ogg",
+    "click.ogg",
 ];
 /*
 pub const INSTRUMENT_FILENAMES: &[&str] = &[
-    "Sounds/banjo.ogg",
-    "Sounds/bdrum.ogg",
-    "Sounds/bell.ogg",
-    "Sounds/bit.ogg",
-    "Sounds/click.ogg",
-    "Sounds/cow_bell.ogg",
-    "Sounds/dbass.ogg",
-    "Sounds/didgeridoo.ogg",
-    "Sounds/flute.ogg",
-    "Sounds/guitar.ogg",
-    "Sounds/harp.ogg",
-    "Sounds/icechime.ogg",
-    "Sounds/iron_xylophone.ogg",
-    "Sounds/pling.ogg",
-    "Sounds/sdrum.ogg",
-    "Sounds/xylobone.ogg",
+    "banjo.ogg",
+    "bdrum.ogg",
+    "bell.ogg",
+    "bit.ogg",
+    "click.ogg",
+    "cow_bell.ogg",
+    "dbass.ogg",
+    "didgeridoo.ogg",
+    "flute.ogg",
+    "guitar.ogg",
+    "harp.ogg",
+    "icechime.ogg",
+    "iron_xylophone.ogg",
+    "pling.ogg",
+    "sdrum.ogg",
+    "xylobone.ogg",
 ];*/
 
 pub const INSTRUMENT_COUNT: usize = INSTRUMENT_FILENAMES.len();
@@ -34,6 +34,8 @@ pub const PITCH_COUNT: usize = 25;
 pub type SpectrogramSlice = [Vec<f32>];
 pub type AmplitudeSpectrogram = Vec<Vec<f32>>;
 pub type ComplexSpectrogram = Vec<Vec<Complex32>>;
+
+use std::path::Path;
 
 use babycat::Waveform;
 use babycat::Signal;
@@ -62,7 +64,7 @@ pub fn get_volume_from_state_space(nss: &NoteStateSpace, instrument_id: usize, p
 use crate::wave;
 use crate::wave::complex_spectrogram_to_amplitude;
 use crate::wave::waveform_to_complex_spectrogram;
-pub fn cache_instruments() -> CachedInstruments {
+pub fn cache_instruments(sounds_folder: &str) -> CachedInstruments {
     let fft_size = 4096;
     let hop_size = 1024;
 
@@ -78,7 +80,7 @@ pub fn cache_instruments() -> CachedInstruments {
     for instr_idx in 0..INSTRUMENT_COUNT {
         let instr_filename = INSTRUMENT_FILENAMES[instr_idx];
         print!("Loading {}\n", instr_filename);
-        let sample_wf = wave::import_sound_file(instr_filename);
+        let sample_wf = wave::import_sound_file(&Path::new(sounds_folder).join(instr_filename).to_str().unwrap());
         for pitch in 0..PITCH_COUNT {
             let multiplier = 2.0f64.powf((pitch as i32 - 12) as f64 / 12.0);
             cached_instruments.waveforms[instr_idx].push(wave::change_pitch(&sample_wf, multiplier as f32));

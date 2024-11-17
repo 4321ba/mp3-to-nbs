@@ -10,22 +10,22 @@ use crate::note;
 use phf::phf_map;
 static COUNTRIES: phf::Map<&str, nbs::noteblocks::instrument::Instrument> = phf_map! {
     "UK" => instrument::PIANO,
-    "Sounds/banjo.ogg" => instrument::BANJO,
-    "Sounds/bdrum.ogg" => instrument::BASS_DRUM,
-    "Sounds/bell.ogg" => instrument::BELL,
-    "Sounds/bit.ogg" => instrument::BIT,
-    "Sounds/click.ogg" => instrument::CLICK,
-    "Sounds/cow_bell.ogg" => instrument::COW_BELL,
-    "Sounds/dbass.ogg" => instrument::DOUBLE_BASS,
-    "Sounds/didgeridoo.ogg" => instrument::DIDGERIDOO,
-    "Sounds/flute.ogg" => instrument::FLUTE,
-    "Sounds/guitar.ogg" => instrument::GUITAR,
-    "Sounds/harp.ogg" => instrument::PIANO,
-    "Sounds/icechime.ogg" => instrument::CHIME,
-    "Sounds/iron_xylophone.ogg" => instrument::IRON_XYLOPHONE,
-    "Sounds/pling.ogg" => instrument::PLING,
-    "Sounds/sdrum.ogg" => instrument::SNARE_DRUM,
-    "Sounds/xylobone.ogg" => instrument::XYLOPHONE,
+    "banjo.ogg" => instrument::BANJO,
+    "bdrum.ogg" => instrument::BASS_DRUM,
+    "bell.ogg" => instrument::BELL,
+    "bit.ogg" => instrument::BIT,
+    "click.ogg" => instrument::CLICK,
+    "cow_bell.ogg" => instrument::COW_BELL,
+    "dbass.ogg" => instrument::DOUBLE_BASS,
+    "didgeridoo.ogg" => instrument::DIDGERIDOO,
+    "flute.ogg" => instrument::FLUTE,
+    "guitar.ogg" => instrument::GUITAR,
+    "harp.ogg" => instrument::PIANO,
+    "icechime.ogg" => instrument::CHIME,
+    "iron_xylophone.ogg" => instrument::IRON_XYLOPHONE,
+    "pling.ogg" => instrument::PLING,
+    "sdrum.ogg" => instrument::SNARE_DRUM,
+    "xylobone.ogg" => instrument::XYLOPHONE,
 };
 
 
@@ -43,7 +43,7 @@ pub fn clean_quiet_notes(notes: &Vec<Vec<crate::note::Note>>) -> Vec<Vec<crate::
     ret
 }
 
-pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>, tps: f64) {
+pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>, tps: f64, output_file: &str) {
     assert_eq!(notes.len(), timestamps.len(), "Amount of note vecs should be the amount of timestamps!");
     let layer_counts_by_instrid: Vec<usize> = (0..note::INSTRUMENT_COUNT).map(|instr_id|
         notes.iter().max_by_key(|tick|
@@ -52,7 +52,7 @@ pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>
     ).collect();
     let max_layer_count = layer_counts_by_instrid.iter().sum();
     //let max_layer_count = notes.iter().max_by_key(|v| v.len()).unwrap().len();
-    let mut file = File::create("out.nbs").unwrap();
+    let mut file = File::create(output_file).unwrap();
     let mut header = Header::new(NbsFormat::OpenNoteBlockStudio(4)); // Create a header.
     header.song_name = String::from("test"); // Change the name to `test`.
     header.song_tempo = (tps * 100.0 + 0.5) as i16;

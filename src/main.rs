@@ -86,21 +86,23 @@ fn main() {
     //let hopcounts2: &[usize] = &hopcounts;
 
     let tps2 = tempo::guess_tps_aubio(&waveform);
-    let tps = tempo::guess_exact_tps(&hopcounts_old, 1024, waveform.frame_rate_hz(), tps2);
+    let onsets = get_onsets_aubio(&waveform);
+    let tps_guessed = tempo::guess_exact_tps(&onsets, 1024, waveform.frame_rate_hz(), tps2);
+    let tps = if args.tps > 0.0 { args.tps } else { tps_guessed };
 
     let tps_old = tempo::guess_tps(&hopcounts_old, 1024, waveform.frame_rate_hz());
     //let tps = 10.0;//TODO hardcoded for now
     dbg!(tps_old);
     dbg!(tps2);
     dbg!(tps);
-    let onsets = get_onsets_aubio(&waveform);
     //let hopcounts_notthateven = convert_onsets_to_hopcounts_uneven_with_filler(&onsets, tps, 1024, waveform.frame_rate_hz());
     //dbg!(&hopcounts);
     let evened_onsets = even_out_onsets(&onsets, tps, hop_size, waveform.frame_rate_hz());
+    dbg!(evened_onsets[0]);
     let hopcounts = onsets_to_hopcounts(&evened_onsets, 1024);
     println!("{:?}", &hopcounts);
 
-    let cache = note::cache_instruments();
+    let cache = note::cache_instruments(&args.sounds_folder);
     //test_main(&waveform);
 
     //let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
@@ -114,7 +116,7 @@ fn main() {
         let current_notes = add_notes_together(&notes, &cache, 1.0);
         accumulator_waveform = add_waveforms_delayed(&accumulator_waveform, &current_notes, *onset);
 
-        debug::debug_save_as_image(&wave::complex_spectrogram_to_amplitude(&waveform_to_complex_spectrogram(&accumulator_waveform, 4096, 1024, -1)), "accumulated.png");
+        //debug::debug_save_as_image(&wave::complex_spectrogram_to_amplitude(&waveform_to_complex_spectrogram(&accumulator_waveform, 4096, 1024, -1)), "accumulated.png");
 
         all_found_notes.push(notes);
     }
@@ -124,5 +126,5 @@ fn main() {
     dbg!(&hopcounts);
     let timestamps = tempo::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
     dbg!(&timestamps);
-    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps);
+    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps, &args.output_file);
 }
