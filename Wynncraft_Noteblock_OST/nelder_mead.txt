@@ -1,0 +1,31 @@
+$ ./diff.py nbs/007_Saddle_Up_Ternaves.nbs recognized/007_Saddle_Up_Ternaves.nbs 
+Comparing original nbs/007_Saddle_Up_Ternaves.nbs to recognized recognized/007_Saddle_Up_Ternaves.nbs
+Sum of squared volume errors compared to silence: 3231.0
+Sum of squared volume errors compared to recognized: 719.6448999999964
+Count of notes in the original: 1555
+Count of notes correctly recognized: 1326
+Count of notes not recognized: 229
+Count of nonexisting notes recognized: 1423
+Count of silences correctly recognized: 124897
+
+
+$ ./diff.py nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs 
+Comparing original nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs to recognized recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs
+Sum of squared volume errors compared to silence: 1185.0
+Sum of squared volume errors compared to recognized: 410.0280999999985
+Count of notes in the original: 1167
+Count of notes correctly recognized: 1022
+Count of notes not recognized: 145
+Count of nonexisting notes recognized: 438
+Count of silences correctly recognized: 142520
+
+
+$ ./diff.py nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs 
+Comparing original nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs to recognized recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs
+Sum of squared volume errors compared to silence: 1556.0
+Sum of squared volume errors compared to recognized: 489.68079999999793
+Count of notes in the original: 1532
+Count of notes correctly recognized: 1347
+Count of notes not recognized: 185
+Count of nonexisting notes recognized: 1376
+Count of silences correctly recognized: 133217

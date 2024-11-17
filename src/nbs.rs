@@ -35,8 +35,14 @@ pub fn clean_quiet_notes(notes: &Vec<Vec<crate::note::Note>>) -> Vec<Vec<crate::
         ret.push(Vec::new());
         let last = ret.len() - 1;
         for note in tick {
-            if note.volume.abs() >= 0.1 {
-                ret[last].push(*note);
+            let mut vol = note.volume.abs();
+            while vol >= 0.1 {
+                ret[last].push(crate::note::Note {
+                    instrument_id: note.instrument_id,
+                    pitch: note.pitch,
+                    volume: if vol <= 1.0 { vol } else { 1.0 }
+                });
+                vol -= 1.0;
             }
         }
     }
