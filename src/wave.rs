@@ -146,3 +146,18 @@ pub fn change_pitch(wf: &Waveform, multiplier: f32) -> Waveform {
     //println!("To {:?}", even_newer_wf);
     even_newer_wf
 }
+
+pub fn add_waveforms_delayed(orig: &Waveform, delayed: &Waveform, delay: usize) -> Waveform {
+    assert_eq!(orig.frame_rate_hz(), delayed.frame_rate_hz(), "Sampling rate should be the same!");
+    assert_eq!(orig.num_channels(), delayed.num_channels(), "Channel count should be the same!");
+    let bigger_width = std::cmp::max(
+        orig.to_interleaved_samples().len(), 
+        delayed.to_interleaved_samples().len() + delay
+    );
+    let mut samples = vec![0.0; bigger_width];
+    for i in 0..bigger_width {
+        samples[i] += orig.to_interleaved_samples().get(i).unwrap_or(&0.0);
+        samples[i] += delayed.to_interleaved_samples().get(i.overflowing_sub(delay).0).unwrap_or(&0.0);
+    }
+    Waveform::from_interleaved_samples(orig.frame_rate_hz(), orig.num_channels(), &samples)
+}

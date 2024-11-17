@@ -161,7 +161,7 @@ pub fn even_out_onsets(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_h
     extended_onsets.push(*onsets.last().unwrap());
     
     let tick_count = extended_onsets.len();
-    let sample_diff = (onsets.last().unwrap() - onsets[0]) as f64 / (tick_count - 1) as f64;
+    let sample_diff = frame_rate_hz as f64 / tps;//(onsets.last().unwrap() - onsets[0]) as f64 / (tick_count - 1) as f64;
     let first_sample = extended_onsets.iter().enumerate()
         .map(|(i, o)| *o as f64 - i as f64 * sample_diff).sum::<f64>() / tick_count as f64;
     let last_sample = extended_onsets.iter().enumerate()
@@ -170,8 +170,9 @@ pub fn even_out_onsets(onsets: &[usize], tps: f64, hop_size: usize, frame_rate_h
     dbg!(extended_onsets.last().unwrap());
     dbg!(first_sample);
     dbg!(last_sample);
-    let mod_sample_diff = (last_sample - first_sample) / (tick_count - 1) as f64;
-    (0..tick_count).map(|i| (first_sample + i as f64 * mod_sample_diff + 0.5) as usize).collect()
+    let mod_first_sample = if first_sample >= 0.0 { first_sample } else { 0.0 };
+    //let mod_sample_diff = (last_sample - first_sample) / (tick_count - 1) as f64;
+    (0..tick_count).map(|i| (mod_first_sample + i as f64 * sample_diff + 0.5) as usize).collect()
 }
 pub fn onsets_to_hopcounts(onsets: &[usize], hop_size: usize) -> Vec<usize> {
     onsets.into_iter().map(|o| (o + hop_size / 2) / hop_size).collect()

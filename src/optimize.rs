@@ -2,6 +2,7 @@
 use crate::note;
 use crate::wave;
 use crate::debug;
+use crate::wave::waveform_to_complex_spectrogram;
 use crate::wave::waveform_to_spectrogram;
 
 use argmin::core::State;
@@ -211,7 +212,7 @@ pub fn optimize(cache: &note::CachedInstruments, spectrogram_slice: &note::Spect
 
 }
 
-pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize, previous_part: &[Vec<Complex32>], wf: &Waveform, onset: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
+pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &note::AmplitudeSpectrogram, start_hop: usize, previous_part: &Waveform, wf: &Waveform, onset: usize) -> Vec<note::Note>  {// TODO this only needs to be done even less frequently
     let hopstocomp_bigger = 40; //TODO fftsize and hopsize as variables as well
     if wf.to_interleaved_samples().len() <= onset + hopstocomp_bigger * 1024 {
         return Vec::new();
@@ -224,12 +225,20 @@ pub fn full_optimize_timestamp(cache: &note::CachedInstruments, spectrogram: &no
     let cut_spectrogram = waveform_to_spectrogram(&cut_wf, 4096, 1024);
 
     let found_notes = test_distances_for_instruments(&cut_spectrogram, &cache);
-    let previous = if previous_part.len() < start_hop {
-        &vec![vec![0.0.into();previous_part[0].len()];1]
-    } else {
-        &previous_part[start_hop..]
-    };
-    let better_found_notes = optimize(&cache, &cut_spectrogram, &found_notes, previous);
+
+    let short_vec = vec![0.0.into();1];
+    let cut_previous_wf = Waveform::from_interleaved_samples(
+        previous_part.frame_rate_hz(),
+        previous_part.num_channels(),
+        if previous_part.to_interleaved_samples().len() <= onset {
+            &short_vec
+        } else {
+            &previous_part.to_interleaved_samples()[onset..]
+        }
+    );
+    let cut_previous_spectrogram = waveform_to_complex_spectrogram(&cut_previous_wf, 4096, 1024, -1);
+
+    let better_found_notes = optimize(&cache, &cut_spectrogram, &found_notes, &cut_previous_spectrogram);
     better_found_notes
 }
 //TODO: overamplification and bpm as parameters at first, and try to guess them later; tuning as well???

@@ -61,9 +61,12 @@ fn test_main(waveform: &Waveform) {
 
 
 use clap::Parser;
+use note::add_notes_together;
 use tempo::even_out_onsets;
 use tempo::get_onsets_aubio;
 use tempo::onsets_to_hopcounts;
+use wave::add_waveforms_delayed;
+use wave::waveform_to_complex_spectrogram;
 use crate::wave::waveform_to_spectrogram;
 use crate::{cli::Args, note::Note};
 use rayon::prelude::*;
@@ -95,24 +98,23 @@ fn main() {
     //dbg!(&hopcounts);
     let evened_onsets = even_out_onsets(&onsets, tps, hop_size, waveform.frame_rate_hz());
     let hopcounts = onsets_to_hopcounts(&evened_onsets, 1024);
-    dbg!(&hopcounts);
+    println!("{:?}", &hopcounts);
 
     let cache = note::cache_instruments();
     //test_main(&waveform);
 
     //let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
     let mut all_found_notes = Vec::new();
-    let mut accumulator_spectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; 1];
+    let mut accumulator_waveform = Waveform::from_frames_of_silence(waveform.frame_rate_hz(), waveform.num_channels(), 10);
     for onset in &evened_onsets {
         let hopcount = (*onset + hop_size / 2) / hop_size;
-        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, hopcount, &accumulator_spectrogram, &waveform, *onset);
+        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, hopcount, &accumulator_waveform, &waveform, *onset);
         println!("Found notes: {:?}", notes);
 
-        let mut padded_spectrogram: note::ComplexSpectrogram = vec![vec![0.0.into(); spectrogram[0].len()]; hopcount];
-        padded_spectrogram.extend(note::add_note_spectrograms(&notes, &Vec::new(), &cache, 1.0));
-        accumulator_spectrogram = note::add_spectrograms(&padded_spectrogram, &accumulator_spectrogram);
+        let current_notes = add_notes_together(&notes, &cache, 1.0);
+        accumulator_waveform = add_waveforms_delayed(&accumulator_waveform, &current_notes, *onset);
 
-        debug::debug_save_as_image(&wave::complex_spectrogram_to_amplitude(&accumulator_spectrogram), "accumulated.png");
+        debug::debug_save_as_image(&wave::complex_spectrogram_to_amplitude(&waveform_to_complex_spectrogram(&accumulator_waveform, 4096, 1024, -1)), "accumulated.png");
 
         all_found_notes.push(notes);
     }
