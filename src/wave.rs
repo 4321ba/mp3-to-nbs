@@ -104,7 +104,7 @@ pub fn waveform_to_complex_spectrogram(wf: &Waveform, fft_size: usize, hop_size:
     create_complex_spectrum(wf.to_interleaved_samples(), wf.frame_rate_hz(), fft_size, hop_size, hop_count)
 }
 
-pub fn complex_spectrogram_to_amplitude(spectrogram: &Vec<Vec<Complex32>>) -> Vec<Vec<f32>> {
+pub fn complex_spectrogram_to_amplitude(spectrogram: &[Vec<Complex32>]) -> Vec<Vec<f32>> {
     spectrogram.into_iter().map(
         |spectrum| spectrum.into_iter().map(
             |cx| (cx.re*cx.re + cx.im*cx.im).sqrt()

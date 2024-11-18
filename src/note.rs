@@ -188,3 +188,18 @@ pub fn add_spectrograms(one: &[Vec<Complex32>], other: &[Vec<Complex32>]) -> Com
 
 }
 
+pub fn sub_spectrograms(one: &[Vec<Complex32>], other: &[Vec<Complex32>]) -> ComplexSpectrogram {
+    let bigger_width = std::cmp::max(one.len(), other.len());
+    let height = one[0].len();
+    assert!(other.len() == 0 || height == other[0].len()); // though dfferent vectors could still be different sizes
+    let mut ret = vec![vec![0.0.into(); height]; bigger_width];
+    for x in 0..bigger_width {
+        for y in 0..height {
+            let one_val = match one.get(x) { Some(v) => v[y], None => 0.0.into() };
+            let other_val = match other.get(x) { Some(v) => v[y], None => 0.0.into() };
+            ret[x][y] = one_val - other_val;
+        }
+    }
+    ret
+
+}

@@ -1,14 +1,3 @@
-$ ./diff.py nbs/007_Saddle_Up_Ternaves.nbs recognized/007_Saddle_Up_Ternaves.nbs 
-Comparing original nbs/007_Saddle_Up_Ternaves.nbs to recognized recognized/007_Saddle_Up_Ternaves.nbs
-Sum of squared volume errors compared to silence: 3231.0
-Sum of squared volume errors compared to recognized: 719.6448999999964
-Count of notes in the original: 1555
-Count of notes correctly recognized: 1326
-Count of notes not recognized: 229
-Count of nonexisting notes recognized: 1423
-Count of silences correctly recognized: 124897
-
-
 $ ./diff.py nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs 
 Comparing original nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs to recognized recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs
 Sum of squared volume errors compared to silence: 1185.0
@@ -19,6 +8,15 @@ Count of notes not recognized: 145
 Count of nonexisting notes recognized: 438
 Count of silences correctly recognized: 142520
 
+$ ./diff.py nbs/007_Saddle_Up_Ternaves.nbs recognized/007_Saddle_Up_Ternaves.nbs 
+Comparing original nbs/007_Saddle_Up_Ternaves.nbs to recognized recognized/007_Saddle_Up_Ternaves.nbs
+Sum of squared volume errors compared to silence: 3231.0
+Sum of squared volume errors compared to recognized: 719.6448999999964
+Count of notes in the original: 1555
+Count of notes correctly recognized: 1326
+Count of notes not recognized: 229
+Count of nonexisting notes recognized: 1423
+Count of silences correctly recognized: 124897
 
 $ ./diff.py nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs 
 Comparing original nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs to recognized recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs
@@ -29,3 +27,94 @@ Count of notes correctly recognized: 1347
 Count of notes not recognized: 185
 Count of nonexisting notes recognized: 1376
 Count of silences correctly recognized: 133217
+
+
+after disregarding bdrum:
+
+$ ./diff.py nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs 
+Comparing original nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs to recognized recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs
+Sum of squared volume errors compared to silence: 1057.0
+Sum of squared volume errors compared to recognized: 282.0281000000008
+Count of notes in the original: 1039
+Count of notes correctly recognized: 1022
+Count of notes not recognized: 17
+Count of nonexisting notes recognized: 438
+Count of silences correctly recognized: 113823
+
+$ ./diff.py nbs/007_Saddle_Up_Ternaves.nbs recognized/007_Saddle_Up_Ternaves.nbs 
+Comparing original nbs/007_Saddle_Up_Ternaves.nbs to recognized recognized/007_Saddle_Up_Ternaves.nbs
+Sum of squared volume errors compared to silence: 3020.0
+Sum of squared volume errors compared to recognized: 508.64489999999734
+Count of notes in the original: 1344
+Count of notes correctly recognized: 1326
+Count of notes not recognized: 18
+Count of nonexisting notes recognized: 1423
+Count of silences correctly recognized: 99533
+
+$ ./diff.py nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs 
+Comparing original nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs to recognized recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs
+Sum of squared volume errors compared to silence: 1396.0
+Sum of squared volume errors compared to recognized: 329.6807999999996
+Count of notes in the original: 1372
+Count of notes correctly recognized: 1347
+Count of notes not recognized: 25
+Count of nonexisting notes recognized: 1376
+Count of silences correctly recognized: 106152
+
+
+after fixing layer volume:
+
+$ ./diff.py nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs 
+Comparing original nbs/001_Luxury_of_the_Cease-Fire_Ragni.nbs to recognized recognized/001_Luxury_of_the_Cease-Fire_Ragni.nbs
+Sum of squared volume errors compared to silence: 722.5600000000001
+Sum of squared volume errors compared to recognized: 100.86410000000028
+Count of notes in the original: 1039
+Count of notes correctly recognized: 1022
+Count of notes not recognized: 17
+Count of nonexisting notes recognized: 438
+Count of silences correctly recognized: 113823
+
+$ ./diff.py nbs/007_Saddle_Up_Ternaves.nbs recognized/007_Saddle_Up_Ternaves.nbs 
+Comparing original nbs/007_Saddle_Up_Ternaves.nbs to recognized recognized/007_Saddle_Up_Ternaves.nbs
+Sum of squared volume errors compared to silence: 3020.0
+Sum of squared volume errors compared to recognized: 508.64489999999734
+Count of notes in the original: 1344
+Count of notes correctly recognized: 1326
+Count of notes not recognized: 18
+Count of nonexisting notes recognized: 1423
+Count of silences correctly recognized: 99533
+
+$ ./diff.py nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs 
+Comparing original nbs/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs to recognized recognized/026_Yearning_for_the_Days_of_Glory_Ancient_Nemract.nbs
+Sum of squared volume errors compared to silence: 1357.5999999999988
+Sum of squared volume errors compared to recognized: 317.96879999999965
+Count of notes in the original: 1372
+Count of notes correctly recognized: 1347
+Count of notes not recognized: 25
+Count of nonexisting notes recognized: 1376
+Count of silences correctly recognized: 106152
+
+
+
+
+
+I don't know what these are (some kind of squared error NM tests), but with older and wrong diff.py:
+
+Comparing original nbs/014_Wynns_Shining_Fortress_Troms.nbs to recognized recognized/014_Wynns_Shining_Fortress_Troms_negyzetes.nbs
+Sum of squared volume errors compared to silence: 4630.0
+Sum of squared volume errors compared to recognized: 6400.658200000035
+Count of notes in the original: 2488
+Count of notes correctly recognized: 2193
+Count of notes not recognized: 295
+Count of nonexisting notes recognized: 5938
+Count of silences correctly recognized: 151699
+
+Comparing original nbs/014_Wynns_Shining_Fortress_Troms.nbs to recognized recognized/014_Wynns_Shining_Fortress_Troms_negyzetes.nbs
+Sum of squared volume errors compared to silence: 4630.0
+Sum of squared volume errors compared to recognized: 5080.050400000063
+Count of notes in the original: 2488
+Count of notes correctly recognized: 2260
+Count of notes not recognized: 228
+Count of nonexisting notes recognized: 5351
+Count of silences correctly recognized: 152286
+

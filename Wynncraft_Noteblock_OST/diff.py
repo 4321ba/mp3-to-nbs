@@ -17,7 +17,7 @@ def fill_list_from_song(volume_list, song):
         for note in chord:
             if note.key < 33 or note.key > 57:
                 continue
-            volume_list[tick][note.instrument][note.key - 33] += note.velocity / 100
+            volume_list[tick][note.instrument][note.key - 33] += note.velocity / 100 * song.layers[note.layer].volume / 100
 
 fill_list_from_song(original_song_data, original_song)
 fill_list_from_song(recognized_song_data, recognized_song)
@@ -25,6 +25,10 @@ fill_list_from_song(recognized_song_data, recognized_song)
 # https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists
 def flatten(xsss):
     return [x for xss in xsss for xs in xss for x in xs]
+
+# removing bdrum
+original_song_data = [[tick[0], tick[1], tick[3], tick[4]] for tick in original_song_data]
+recognized_song_data = [[tick[0], tick[1], tick[3], tick[4]] for tick in recognized_song_data]
 
 original_flattened = flatten(original_song_data)
 recognized_flattened = flatten(recognized_song_data)
