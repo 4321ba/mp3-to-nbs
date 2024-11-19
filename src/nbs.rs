@@ -4,11 +4,10 @@ use nbs::{
     Nbs, NbsFormat,
 };
 use std::fs::File;
-
+use phf::phf_map;
 use crate::note;
 
-use phf::phf_map;
-static COUNTRIES: phf::Map<&str, nbs::noteblocks::instrument::Instrument> = phf_map! {
+static INSTRUMENTS: phf::Map<&str, nbs::noteblocks::instrument::Instrument> = phf_map! {
     "UK" => instrument::PIANO,
     "banjo.ogg" => instrument::BANJO,
     "bdrum.ogg" => instrument::BASS_DRUM,
@@ -36,7 +35,7 @@ pub fn clean_quiet_notes(notes: &Vec<Vec<crate::note::Note>>) -> Vec<Vec<crate::
         let last = ret.len() - 1;
         for note in tick {
             let mut vol = note.volume.abs();
-            while vol >= 0.1 {
+            while vol >= 0.15 { // lower threshold for volume for including a note block
                 ret[last].push(crate::note::Note {
                     instrument_id: note.instrument_id,
                     pitch: note.pitch,
@@ -60,7 +59,7 @@ pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>
     //let max_layer_count = notes.iter().max_by_key(|v| v.len()).unwrap().len();
     let mut file = File::create(output_file).unwrap();
     let mut header = Header::new(NbsFormat::OpenNoteBlockStudio(4)); // Create a header.
-    header.song_name = String::from("test"); // Change the name to `test`.
+    header.song_name = String::from("Recognized song"); // Change the name.
     header.song_tempo = (tps * 100.0 + 0.5) as i16;
     let mut noteblocks = NoteBlocks::new();
     for _ in 0..max_layer_count {
@@ -76,8 +75,7 @@ pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>
         let mut current_instrid_beginning: usize = 0;
         for j in 0..notes[i].len() {
             let note = &notes[i][j];
-            let vol = (std::cmp::min(std::cmp::max((note.volume.abs()*100.0) as i32, 0), 100)) as i8;
-            //if vol < 10 { continue; }
+            let vol = (std::cmp::min(std::cmp::max((note.volume.abs()*10.0 + 0.5) as i32 * 10, 0), 100)) as i8;
             if current_instrid != note.instrument_id {
                 current_instrid = note.instrument_id;
                 current_instrid_beginning = (0..note.instrument_id).map(|i| layer_counts_by_instrid[i]).sum();
@@ -86,8 +84,7 @@ pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>
             noteblocks.layers[current_instrid_beginning + instrid_count].notes.insert(
                 timestamps[i] as i16,
                 Note::new(
-                    COUNTRIES[note::INSTRUMENT_FILENAMES[note.instrument_id]],
-                    //if note.instrument_id==0 {instrument::DOUBLE_BASS} else {instrument::PIANO},//-> in a hashmap
+                    INSTRUMENTS[note::INSTRUMENT_FILENAMES[note.instrument_id]],
                     (33 + note.pitch) as i8,
                     Some(vol),
                     Some(100),

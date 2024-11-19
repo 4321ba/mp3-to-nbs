@@ -1,3 +1,6 @@
+// code copied from spectrum-analyzer library, and modified a little bit
+// to export the complex result of the fft calculation
+
 /*
 MIT License
 
@@ -30,7 +33,7 @@ use microfft::real;
 /// The result of a FFT is always complex but because different FFT crates might
 /// use different versions of "num-complex", each implementation exports
 /// it's own version that gets used in lib.rs for binary compatibility.
-pub use microfft::Complex32;
+use microfft::Complex32;
 
 /// Calculates the real FFT by invoking the proper function corresponding to the
 /// buffer length.
@@ -133,7 +136,6 @@ impl FftImpl {
 /// * When `samples.len()` isn't a power of two less than or equal to `16384` and `microfft` is used
 pub fn samples_fft_to_complex_spectrum(
     samples: &[f32],
-    sampling_rate: u32,
 ) -> Result<Vec<Complex32>, SpectrumAnalyzerError> {
     // everything below two samples is unreasonable
     if samples.len() < 2 {

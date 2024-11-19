@@ -1,130 +1,78 @@
-mod cli;
 mod note;
 mod wave;
 mod optimize;
 mod debug;
 mod nbs;
-mod complex_lib;
 mod tempo;
+mod fourier;
 
-fn max_of_slice(slice: &[f32]) -> &f32 {
-    slice
-        .iter()
-        .max_by(|a,  b| a.partial_cmp(b).expect("No NaN should be here")).expect("Slice shouldn't be empty")
-}
+mod observer;
+mod complex_spectrum;
 
-//use std::hint;
-
-use std::char::MAX;
-
-use babycat::{Signal, Waveform, WaveformArgs};
-
-
-
-
-use debug::debug_save_as_image;
-use debug::debug_save_as_wav;
-fn test_main(waveform: &Waveform) {
-
-    let samples = waveform.to_interleaved_samples();
-    let harp_wf = wave::import_sound_file("Sounds/harp.ogg");
-
-    //println!("{:?}", &samples[105750..105800]);
-    println!("{}", max_of_slice(samples));
-
-    /*
-    let spectrum_hann_window = transform_fourier(&samples[0..16], waveform.frame_rate_hz());
-
-    for (fr, fr_val) in spectrum_hann_window.data().iter() {
-        println!("{}Hz => {}", fr, fr_val)
-    }*/
-
-    //let test1 = create_spectrum(samples, waveform.frame_rate_hz(), 128, 1024);
-    let test2 = wave::create_spectrum(samples, waveform.frame_rate_hz(), 4096, 1024, -1);
-    //println!("{} {}", test1.len(), test2.len());
-    debug_save_as_image(&wave::spectrum_to_2d_vec(&test2), "image.png");
-    let waveform_diff_pitch = wave::change_pitch(&waveform, 1.5);
-    let test3 = wave::create_spectrum(
-        waveform_diff_pitch.to_interleaved_samples(), waveform_diff_pitch.frame_rate_hz(), 4096, 1024, -1);
-    debug_save_as_image(&wave::spectrum_to_2d_vec(&test3), "image2.png");
-    debug_save_as_wav(waveform, "wf1.wav");
-    debug_save_as_wav(&waveform_diff_pitch, "wf2.wav");
-}
-
-
-
-
-
-
-
-
-
-
+use babycat::{Signal, Waveform};
 use clap::Parser;
+use tracing::{debug};
 use note::add_notes_together;
 use tempo::even_out_onsets;
 use tempo::get_onsets_aubio;
 use tempo::onsets_to_hopcounts;
 use wave::add_waveforms_delayed;
-use wave::waveform_to_complex_spectrogram;
-use crate::wave::waveform_to_spectrogram;
-use crate::{cli::Args, note::Note};
-use rayon::prelude::*;
+
+
+
+#[derive(Parser, Debug)]
+#[command(author = "1234ab", version, about, long_about = "mp3 to nbs converter")]
+pub struct Args {
+    #[arg(short, long, long_help = "The waveform file that should be parsed to nbs.\nExample: song.mp3", required = true)]
+    pub input_file: String,
+    #[arg(short, long, long_help = "The output NBS file.\nExample: song.nbs", required = true)]
+    pub output_file: String,
+    #[arg(short, long, long_help = "The folder where the sounds are.\nExample: Sounds", required = false, default_value = "Sounds")]
+    pub sounds_folder: String,
+    #[arg(short, long, long_help = "The tempo in ticks per second.\nExample: 6.75", required = false, default_value = "-1.0")]
+    pub tps: f64,
+}
+
+
 fn main() {
-    // Argument parsing
+    tracing_subscriber::fmt()
+    //    .with_max_level(tracing::Level::DEBUG)
+        .init();
     let args = Args::parse();
-    println!("{:?}", args);
+    debug!("Command line args: {:?}", args);
 
-    
     let waveform = wave::import_sound_file(&args.input_file);
-    dbg!(&waveform.to_interleaved_samples()[0..30]);
 
-    let hop_size = 1024;
-    let spectrogram = wave::waveform_to_spectrogram(&waveform, 4096, 1024);
-
-    let hopcounts_old = tempo::get_interesting_hopcounts(&spectrogram);
-    //let hopcounts2: &[usize] = &hopcounts;
-
-    let tps2 = tempo::guess_tps_aubio(&waveform);
+    let tps_approx = tempo::guess_tps_aubio(&waveform);
     let onsets = get_onsets_aubio(&waveform);
-    let tps_guessed = tempo::guess_exact_tps(&onsets, 1024, waveform.frame_rate_hz(), tps2);
+    let tps_guessed = tempo::guess_exact_tps(&onsets, waveform.frame_rate_hz(), tps_approx);
     let tps = if args.tps > 0.0 { args.tps } else { tps_guessed };
-
-    let tps_old = tempo::guess_tps(&hopcounts_old, 1024, waveform.frame_rate_hz());
-    //let tps = 10.0;//TODO hardcoded for now
-    dbg!(tps_old);
-    dbg!(tps2);
-    dbg!(tps);
-    //let hopcounts_notthateven = convert_onsets_to_hopcounts_uneven_with_filler(&onsets, tps, 1024, waveform.frame_rate_hz());
-    //dbg!(&hopcounts);
-    let evened_onsets = even_out_onsets(&onsets, tps, hop_size, waveform.frame_rate_hz());
-    dbg!(evened_onsets[0]);
-    let hopcounts = onsets_to_hopcounts(&evened_onsets, 1024);
-    println!("{:?}", &hopcounts);
+    debug!("Approximate tps: {}, exact guessed tps: {}, given tps: {}, final choice: {}", tps_approx, tps_guessed, args.tps, tps);
+    let evened_onsets = even_out_onsets(&onsets, tps, waveform.frame_rate_hz(), 0);
+    debug!("Onsets: {:?}", evened_onsets);
 
     let cache = note::cache_instruments(&args.sounds_folder);
-    //test_main(&waveform);
 
+    // multithreading cannot directly be used sadly, as we use the previous guessed notes for the next guess
     //let all_found_notes = hopcounts.par_iter().map(|i| optimize::full_optimize_timestamp(&cache, &spectrogram, *i)).collect();
+    
     let mut all_found_notes = Vec::new();
     let mut accumulator_waveform = Waveform::from_frames_of_silence(waveform.frame_rate_hz(), waveform.num_channels(), 10);
     for onset in &evened_onsets {
-        let hopcount = (*onset + hop_size / 2) / hop_size;
-        let notes = optimize::full_optimize_timestamp(&cache, &spectrogram, hopcount, &accumulator_waveform, &waveform, *onset);
-        println!("Found notes: {:?}", notes);
+        let percentage = *onset as f32 / *evened_onsets.last().unwrap() as f32 * 100.0;
+        println!("Recognizing {}, currently at {}%", &args.input_file, percentage);
+        debug!("Starting recognition at onset {}, at {}%", onset, percentage);
+        let notes = optimize::full_optimize_timestamp(&cache, &accumulator_waveform, &waveform, *onset, tps);
+        debug!("Found notes: {:?}", notes);
 
         let current_notes = add_notes_together(&notes, &cache, 1.0);
         accumulator_waveform = add_waveforms_delayed(&accumulator_waveform, &current_notes, *onset);
 
-        //debug::debug_save_as_image(&wave::complex_spectrogram_to_amplitude(&waveform_to_complex_spectrogram(&accumulator_waveform, 4096, 1024, -1)), "accumulated.png");
-
         all_found_notes.push(notes);
     }
-    
-    println!("Found all notes: {:?}", all_found_notes);
 
-    dbg!(&hopcounts);
-    let timestamps = tempo::convert_hopcounts_to_ticks(&hopcounts, tps, 1024, waveform.frame_rate_hz());
-    dbg!(&timestamps);
+    let hopcounts = onsets_to_hopcounts(&evened_onsets, fourier::HOP_SIZE);
+    let timestamps = tempo::convert_hopcounts_to_ticks(&hopcounts, tps, fourier::HOP_SIZE, waveform.frame_rate_hz());
+    debug!("Valid tick positions: {:?}", timestamps);
     nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps, &args.output_file);
 }

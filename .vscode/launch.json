@@ -24,7 +24,7 @@
             //test_02_wc_qctc.ogg
             //test_own.mp3
             //eightlegged_sajatexport_rovidebb.mp3
-            "args": ["--input-file", "musictests/eightlegged_sajatexport_rovidebb.mp3", "--output-file", "out.nbs", "--sounds-folder", "Sounds"],
+            "args": ["--input-file", "musictests/eightlegged_sajatexport_rovidebb_zerostart.mp3", "--output-file", "out.nbs", "--sounds-folder", "Sounds"],
             "cwd": "${workspaceFolder}"
         },
         {
