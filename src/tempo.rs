@@ -99,7 +99,7 @@ pub fn get_onsets_aubio(wf: &Waveform) -> Vec<usize> {
     ret
 }
 
-
+#[allow(dead_code)]
 pub fn even_out_onsets(onsets: &[usize], tps: f64, frame_rate_hz: u32, start_sample: isize) -> Vec<usize> {
     let mut extended_onsets: Vec<usize> = onsets.windows(2)
         .flat_map(|w| {
@@ -124,6 +124,12 @@ pub fn even_out_onsets(onsets: &[usize], tps: f64, frame_rate_hz: u32, start_sam
     let mod_first_sample = if start_sample >= 0 { start_sample as f64 } else if first_sample >= 0.0 { first_sample } else { 0.0 };
     //let mod_sample_diff = (last_sample - first_sample) / (tick_count - 1) as f64;
     (0..tick_count).map(|i| (mod_first_sample + i as f64 * sample_diff + 0.5) as usize).collect()
+}
+
+pub fn even_onsets(tps: f64, frame_rate_hz: u32, sample_count: usize) -> Vec<usize> {
+    let sample_per_tick = frame_rate_hz as f64 / tps;
+    let all_tick_count = (sample_count as f64 / sample_per_tick) as usize;
+    (0..all_tick_count).map(|i| (i as f64 * sample_per_tick + 0.5) as usize).collect()
 }
 
 

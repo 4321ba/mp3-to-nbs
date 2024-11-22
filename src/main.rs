@@ -47,8 +47,9 @@ fn main() {
     let onsets = get_onsets_aubio(&waveform);
     let tps_guessed = tempo::guess_exact_tps(&onsets, waveform.frame_rate_hz(), tps_approx);
     let tps = if args.tps > 0.0 { args.tps } else { tps_guessed };
+    println!("Recognizing {}, using tps {}", &args.input_file, tps);
     debug!("Approximate tps: {}, exact guessed tps: {}, given tps: {}, final choice: {}", tps_approx, tps_guessed, args.tps, tps);
-    let evened_onsets = even_out_onsets(&onsets, tps, waveform.frame_rate_hz(), 0);
+    let evened_onsets = tempo::even_onsets(tps, waveform.frame_rate_hz(), waveform.num_samples());
     debug!("Onsets: {:?}", evened_onsets);
 
     let cache = note::cache_instruments(&args.sounds_folder);
