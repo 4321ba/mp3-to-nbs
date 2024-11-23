@@ -11,9 +11,8 @@ mod complex_spectrum;
 
 use babycat::{Signal, Waveform};
 use clap::Parser;
-use tracing::{debug};
+use tracing::debug;
 use note::add_notes_together;
-use tempo::even_out_onsets;
 use tempo::get_onsets_aubio;
 use tempo::onsets_to_hopcounts;
 use wave::add_waveforms_delayed;

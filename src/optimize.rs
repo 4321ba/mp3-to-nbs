@@ -75,7 +75,7 @@ impl Gradient for OptiProblem<'_> {
         // cost = squaredsum(amplitude(p1 * sp1 + p2 * sp2 + ... + pn * spn + spprevious - original))
         // cost = (p1*sp1[00re] + p2*sp2[00re] + ... + spprevious[00re] - original[00re])^2 + (p1*sp1[00im] + p2*sp2[00im] + ... + spprevious[00im] - original[00im])^2
         // + same thing for [01] + [02] + ... + [10] + [11] + ...
-        // dcost/dp1 = sp1[00re] * (p1*sp1[00re] + p2*sp2[00re] + ... + spprevious[00re] - original[00re]) + sp1[00im] * (p1*sp1[00im] + p2*sp2[00im] + ... + spprevious[00im] - original[00im])
+        // dcost/dp1 = 2 * sp1[00re] * (p1*sp1[00re] + p2*sp2[00re] + ... + spprevious[00re] - original[00re]) + 2 * sp1[00im] * (p1*sp1[00im] + p2*sp2[00im] + ... + spprevious[00im] - original[00im])
         // + same thing for [01] + [02] + ... + [10] + [11] + ...
         assert_eq!(param.len(), self.found_notes.len(), "Volume guess vec should be as long as the notes vec to guess");
         let added_spectrogram = note::add_note_spectrograms(self.found_notes, param, self.cache, self.multiplier);
@@ -86,7 +86,7 @@ impl Gradient for OptiProblem<'_> {
             let note_spectrogram = &self.cache.complex_spectrograms[note.instrument_id][note.pitch];
             let cut_note_spectrogram = &note_spectrogram[0..std::cmp::min(self.hops_to_compare, note_spectrogram.len())];
             let diff = fourier::calculate_distance_complex(found_part, &cut_note_spectrogram, &|fp, no| fp.re * no.re + fp.im * no.im);
-            diff
+            2.0 * diff
         }).collect();
         Ok(grad)
     }

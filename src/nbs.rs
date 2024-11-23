@@ -8,7 +8,6 @@ use phf::phf_map;
 use crate::note;
 
 static INSTRUMENTS: phf::Map<&str, nbs::noteblocks::instrument::Instrument> = phf_map! {
-    "UK" => instrument::PIANO,
     "banjo.ogg" => instrument::BANJO,
     "bdrum.ogg" => instrument::BASS_DRUM,
     "bell.ogg" => instrument::BELL,
@@ -51,9 +50,9 @@ pub fn clean_quiet_notes(notes: &Vec<Vec<crate::note::Note>>) -> Vec<Vec<crate::
 pub fn export_notes(notes: &Vec<Vec<crate::note::Note>>, timestamps: &Vec<usize>, tps: f64, output_file: &str) {
     assert_eq!(notes.len(), timestamps.len(), "Amount of note vecs should be the amount of timestamps!");
     let layer_counts_by_instrid: Vec<usize> = (0..note::INSTRUMENT_COUNT).map(|instr_id|
-        notes.iter().max_by_key(|tick|
+        notes.iter().map(|tick|
             tick.iter().filter(|note| note.instrument_id == instr_id).count()
-        ).unwrap().iter().filter(|note| note.instrument_id == instr_id).count()
+        ).max().unwrap()
     ).collect();
     let max_layer_count = layer_counts_by_instrid.iter().sum();
     //let max_layer_count = notes.iter().max_by_key(|v| v.len()).unwrap().len();
