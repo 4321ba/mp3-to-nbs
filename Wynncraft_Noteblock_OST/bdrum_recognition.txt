@@ -1,0 +1,45 @@
+$ ./diff.py nbs/Eight-Legged_Foe.nbs recognized_full/Eight-Legged_Foe.nbs 
+Comparing original nbs/Eight-Legged_Foe.nbs to recognized recognized_full/Eight-Legged_Foe.nbs
+Sum of squared volume errors compared to silence: 792.8599999999947
+Sum of squared volume errors compared to recognized: 0.7600000000000002
+Count of notes in the original: 2141
+Count of notes correctly recognized: 2137
+Count of notes not recognized: 4
+Count of nonexisting notes recognized: 2
+Count of silences correctly recognized: 106757
+$ ./diff.py nbs/Eight-Legged_Foe.nbs recognized_bak/Eight-Legged_Foe_bdrum_w0start.nbs 
+Comparing original nbs/Eight-Legged_Foe.nbs to recognized recognized_bak/Eight-Legged_Foe_bdrum_w0start.nbs
+Sum of squared volume errors compared to silence: 792.8599999999947
+Sum of squared volume errors compared to recognized: 14.979999999999839
+Count of notes in the original: 2141
+Count of notes correctly recognized: 2139
+Count of notes not recognized: 2
+Count of nonexisting notes recognized: 60
+Count of silences correctly recognized: 106699
+$ ./diff.py nbs/Eight-Legged_Foe.nbs recognized_bak/Eight-Legged_Foe_bdrum_w5start.nbs 
+Comparing original nbs/Eight-Legged_Foe.nbs to recognized recognized_bak/Eight-Legged_Foe_bdrum_w5start.nbs
+Sum of squared volume errors compared to silence: 792.8599999999947
+Sum of squared volume errors compared to recognized: 7.579999999999978
+Count of notes in the original: 2141
+Count of notes correctly recognized: 2139
+Count of notes not recognized: 2
+Count of nonexisting notes recognized: 78
+Count of silences correctly recognized: 106681
+$ ./diff.py nbs/Eight-Legged_Foe.nbs recognized_bak/Eight-Legged_Foe_bdrum_w0start.nbs 
+Comparing original nbs/Eight-Legged_Foe.nbs to recognized recognized_bak/Eight-Legged_Foe_bdrum_w0start.nbs
+Sum of squared volume errors compared to silence: 860.6999999999898
+Sum of squared volume errors compared to recognized: 64.45999999999913
+Count of notes in the original: 2565
+Count of notes correctly recognized: 2499
+Count of notes not recognized: 66
+Count of nonexisting notes recognized: 238
+Count of silences correctly recognized: 133322
+$ ./diff.py nbs/Eight-Legged_Foe.nbs recognized_bak/Eight-Legged_Foe_bdrum_w5start.nbs 
+Comparing original nbs/Eight-Legged_Foe.nbs to recognized recognized_bak/Eight-Legged_Foe_bdrum_w5start.nbs
+Sum of squared volume errors compared to silence: 860.6999999999898
+Sum of squared volume errors compared to recognized: 56.719999999999466
+Count of notes in the original: 2565
+Count of notes correctly recognized: 2499
+Count of notes not recognized: 66
+Count of nonexisting notes recognized: 287
+Count of silences correctly recognized: 133273

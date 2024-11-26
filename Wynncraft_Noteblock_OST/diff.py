@@ -2,7 +2,13 @@
 from sys import argv
 import pynbs
 from copy import deepcopy
-print(f"Comparing original {argv[1]} to recognized {argv[2]}")
+
+csv_output = len(argv) > 3
+
+if csv_output:
+    print(f"{argv[2].split('/')[-1]}", end=",")
+else:
+    print(f"Comparing original {argv[1]} to recognized {argv[2]}")
 
 INSTR_CNT = 5
 PITCH_CNT = 25
@@ -36,39 +42,60 @@ recognized_flattened = flatten(recognized_song_data)
 acc_squared = 0
 for o in original_flattened:
     acc_squared += o * o
-print("Sum of squared volume errors compared to silence:", acc_squared)
+if csv_output:
+    print(f"{acc_squared}", end=",")
+else:
+    print("Sum of squared volume errors compared to silence:", acc_squared)
 
 acc_diff_squared = 0
 for (o, r) in zip(original_flattened, recognized_flattened):
     acc_diff_squared += (o-r) * (o-r)
-print("Sum of squared volume errors compared to recognized:", acc_diff_squared)
+if csv_output:
+    print(f"{acc_diff_squared}", end=",")
+else:
+    print("Sum of squared volume errors compared to recognized:", acc_diff_squared)
 
 cnt = 0
 for o in original_flattened:
     if o > 0:
         cnt += 1
-print("Count of notes in the original:", cnt)
+if csv_output:
+    print(f"{cnt}", end=",")
+else:
+    print("Count of notes in the original:", cnt)
 
 cnt = 0
 for (o, r) in zip(original_flattened, recognized_flattened):
     if o > 0 and r > 0:
         cnt += 1
-print("Count of notes correctly recognized:", cnt)
+if csv_output:
+    print(f"{cnt}", end=",")
+else:
+    print("Count of notes correctly recognized:", cnt)
 
 cnt = 0
 for (o, r) in zip(original_flattened, recognized_flattened):
     if o > 0 and r == 0:
         cnt += 1
-print("Count of notes not recognized:", cnt)
+if csv_output:
+    print(f"{cnt}", end=",")
+else:
+    print("Count of notes not recognized:", cnt)
 
 cnt = 0
 for (o, r) in zip(original_flattened, recognized_flattened):
     if o == 0 and r > 0:
         cnt += 1
-print("Count of nonexisting notes recognized:", cnt)
+if csv_output:
+    print(f"{cnt}", end=",")
+else:
+    print("Count of nonexisting notes recognized:", cnt)
 
 cnt = 0
 for (o, r) in zip(original_flattened, recognized_flattened):
     if o == 0 and r == 0:
         cnt += 1
-print("Count of silences correctly recognized:", cnt)
+if csv_output:
+    print(f"{cnt}")
+else:
+    print("Count of silences correctly recognized:", cnt)
