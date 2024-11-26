@@ -1,0 +1,66 @@
+kérdések:
+lo, bevezetés kb kész, dokumentum váza kezd felállni, milyen időközönként küldjem átnézésre?
+researchgateen fenn volt egyik de még nem olvastam el, irodalomkutatás jön
+feladatkiírás dipterv portálra?
+szakgyak úton van
+
+SABLON TÉMAKIÍRÁS
+literature review! google scholar (scholar.google.com, 8-10 oldal pdf), legalább 10, cikkenként 1 bekezdés, végén összegzés, h én melyiket fogom követni, miben fogok eltérni
+
+autoencoder for music / fft, representation learning
+researchgate
+
+
+dipterv adatlap, zv tárgy???
+
+
+ütemterv:
+
+kód befejezés: lehetőleg minden todo item a stereo/több hang kivételével, +cleanup
+fókuszálva arra, hogy egy általánosan használható parancssori alkalmazás legyen (argumentumok, értelmes default értékek / automata felismerés), és szép kód legyen
+7.-9. hétig kb végleges kéne legyen
+readme, repo cleanup
+papír megírása (ez elég idő lesz rá??), mekkora, mire kell figyelni? struktúra áthozható kb?
+1-2 héttel a leadás előtt legyen egy végleges változat, hogy legyen idő átnézni
+
+
+
+konkrétabban:
+- több hangszer felismerése
+- tesztelés több zenével
+- felismerés pontosítása, például előző tickben felismert hangok hullámának hozzáadásával a mostani felismerés közben
+- Nelder-Mead optimalizációnak értelmesebb kezdeti érték adása az előfelismerés eredménye alapján
+- automata tps, és túlvezérlés-kompenzáció felismerés
+- parancssori kapcsolók a gyakran változtatandó paraméterekre
+- robusztusabb felismerés másfajta nbs to wave exporterek / módszerek által generált hangfájlokra
+- tesztelés más resource pack-kel / soundfonttal
+- futásidő optimalizálása
+- felismerés pontosságának mérése nagyobb adathalmazon, miután már kellően jó a felismerés
+
+
+
+https://opennbs.org/nbs
+
+https://crates.io/crates/babycat/0.0.14
+https://crates.io/crates/nbs-rs
+https://crates.io/crates/spectrum-analyzer/1.2.5
+https://phip1611.de/blog/frequency-spectrum-analysis-with-fft-in-rust/ (ennek az alján extra források)
+
+https://www.yeschat.ai/gpts-9t557WIFeZk-Music-Sheet-Generator
+https://www.soundslice.com/
+
+http://musicweb.ucsd.edu/~trsmyth/analysis/Harmonic_Product_Spectrum.html
+https://terpconnect.umd.edu/~toh/spectrum/HarmonicAnalysis.html
+
+https://audioalter.com/spectrogram (lehet felesleges)
+https://en.wikipedia.org/wiki/Spectrogram
+https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
+(ha wiki nem jó, a forrásaiból)
+
++ linkek, videólinkek az önlab doksiból, lyukkártyás videó?, egyéb videók
+
+
+misc ötletek:
+forráskód link, open sourceról beszélni
+megköszönni a kontribútornak
+legális kitekintés, szerzői jog

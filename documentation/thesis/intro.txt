@@ -1,0 +1,23 @@
+A szakdolgozathoz kellene egy téma cím, és egy három bekezdéses leírás:
+ - Bevezető
+ - Mit csinálnak a többiek
+ - Te mit csinálsz
+ 
+Tudnál készíteni egy vázlatot?
+
+
+Note Block hangminták felismerése zenefájlban
+ 
+Bevezető
+
+Hullámos fájlokból a zenei hangok visszafejtése komoly probléma, erre létezik sok szoftver. Ezek többnyire wav/mp3 fájlokból generálnak MIDI fájlt, ami tartalmazza a megszólaló hangok időpillanatát és hangmagasságát. Ez a téma a problémának egy részhalmazával foglalkozik, jobb eredményt remélve. A Minecraft nevű játékban hallható Note Block mintákat tartalmazó hangfájlok felismerése a cél, a felismerés eredményét pedig egy erre a célra kifejlesztett szerkesztőprogram (Note Block Studio) saját formátumában bocsátjuk a felhasználó rendelkezésére.
+
+
+Mit csinálnak a többiek
+
+Eddigi kereséseim alapján közvetlen konverzióra még nincs automatizált program / módszer. Leggyakrabban hallás után, manuálisan fejtik vissza a zenéket a felhasználók. Ez hosszadalmas, és jó fül kell hozzá. Automatizált módszer lehetne a hullámos fájlból MIDI készítése meglevő szoftverek segítségével, és a MIDI-t NBS-é alakítani, Note Block Studioval. Ennek mindkét fázisa elég veszteséges és zajos, nem hallottam olyanról, aki tényleg ezt a módszert alkalmazza.
+
+
+Én mit csinálok
+
+A projekt célja egy olyan parancssori konvertáló program létrehozása, amely hullámos hangfájl formájú (wav/mp3) zenéből képes a hangmintákat felismerni, és ez alapján létrehozni egy Note Block Studio (NBS) fájlt. Alapvetően Note Block mintákat tartalmazó hangfájlok felismerése a cél, különböző időpillanatokban és hangmagasságokban, jó eredménnyel.
