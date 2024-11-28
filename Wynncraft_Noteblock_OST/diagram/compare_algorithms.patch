@@ -1,0 +1,150 @@
+diff --git a/.vscode/launch.json b/.vscode/launch.json
+index d2f1fba..dde8fd9 100644
+--- a/.vscode/launch.json
++++ b/.vscode/launch.json
+@@ -24,7 +24,7 @@
+             //test_02_wc_qctc.ogg
+             //test_own.mp3
+             //eightlegged_sajatexport_rovidebb.mp3
+-            "args": ["--input-file", "musictests/eightlegged_sajatexport_rovidebb_zerostart.mp3", "--output-file", "out.nbs", "--sounds-folder", "Sounds"],
++            "args": ["--input-file", "Wynncraft_Noteblock_OST/wave/035_The_Great_Race_Great_Bridge.ogg", "--output-file", "out.nbs", "--sounds-folder", "SoundsQuiet"],
+             "cwd": "${workspaceFolder}"
+         },
+         {
+diff --git a/src/main.rs b/src/main.rs
+index c043204..949623e 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -58,7 +58,7 @@ fn main() {
+     
+     let mut all_found_notes = Vec::new();
+     let mut accumulator_waveform = Waveform::from_frames_of_silence(waveform.frame_rate_hz(), waveform.num_channels(), 10);
+-    for onset in &evened_onsets {
++    for onset in &[0;1] {
+         let percentage = *onset as f32 / *evened_onsets.last().unwrap() as f32 * 100.0;
+         println!("Recognizing {}, currently at {}%", &args.input_file, percentage);
+         debug!("Starting recognition at onset {}, at {}%", onset, percentage);
+@@ -74,5 +74,5 @@ fn main() {
+     let hopcounts = onsets_to_hopcounts(&evened_onsets, fourier::HOP_SIZE);
+     let timestamps = tempo::convert_hopcounts_to_ticks(&hopcounts, tps, fourier::HOP_SIZE, waveform.frame_rate_hz());
+     debug!("Valid tick positions: {:?}", timestamps);
+-    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &timestamps, tps, &args.output_file);
++    nbs::export_notes(&nbs::clean_quiet_notes(&all_found_notes), &vec![0;1], tps, &args.output_file);
+ }
+diff --git a/src/observer.rs b/src/observer.rs
+index 90cece8..4a58c1d 100644
+--- a/src/observer.rs
++++ b/src/observer.rs
+@@ -44,6 +44,7 @@ where
+         data.push(format!("iter: {}", state.get_iter()));
+ 
+         debug!("{} {}", msg, data.join(" | "));
++        println!("\n{}", state.get_best_cost());
+ 
+         Ok(())
+     }
+@@ -65,6 +66,7 @@ where
+         data.push(format!("iter: {}", state.get_iter()));
+ 
+         debug!("{}", data.join(" | "));
++        println!("\n{}", state.get_best_cost());
+ 
+         Ok(())
+     }
+diff --git a/src/optimize.rs b/src/optimize.rs
+index 2691010..6b4c8ce 100644
+--- a/src/optimize.rs
++++ b/src/optimize.rs
+@@ -1,7 +1,11 @@
+ 
++use std::io::Write;
++
+ use crate::fourier;
+ use crate::note;
+ use crate::observer::TracingLogger;
++use argmin::solver::neldermead::NelderMead;
++use argmin::solver::particleswarm::ParticleSwarm;
+ use note::Note;
+ use tracing::debug;
+ use crate::fourier::complex_spectrogram_to_amplitude;
+@@ -64,6 +68,10 @@ impl CostFunction for OptiProblem<'_> {
+         let with_previous = fourier::add_spectrograms(&added_spectrogram, self.previous_part);
+         let found_part = &with_previous[0..std::cmp::min(self.hops_to_compare, with_previous.len())];
+         let diff = fourier::calculate_distance_complex(self.song_part, found_part, &|sp, fp| (sp-fp).norm_sqr());
++
++                
++        print!("C");
++        std::io::stdout().flush().unwrap();
+         Ok(diff)
+     }
+ }
+@@ -88,10 +96,36 @@ impl Gradient for OptiProblem<'_> {
+             let diff = fourier::calculate_distance_complex(found_part, &cut_note_spectrogram, &|fp, no| fp.re * no.re + fp.im * no.im);
+             2.0 * diff
+         }).collect();
++                
++        print!("G");
++        std::io::stdout().flush().unwrap();
+         Ok(grad)
+     }
+ }
+ 
++
++fn get_nm_solver(found_notes: &[Note]) -> NelderMead<Vec<f32>, f32> {
++    let param_number = found_notes.len();
++    let mut paramsvec_nm: Vec<Vec<f32>> = Vec::new();
++    for i in 0..=param_number {
++        paramsvec_nm.push(vec![1.0;param_number]);
++        if i < param_number {
++            paramsvec_nm[i][i] = 0.0;
++        }// else { paramsvec_nm[i] = vec![1.0;param_number]; }
++    }
++    let solverNM = NelderMead::new(paramsvec_nm)
++    .with_sd_tolerance(0.0001).unwrap();
++    solverNM
++}
++fn get_pso_solver(found_notes: &[Note]) -> ParticleSwarm<Vec<f32>, f32, rand::rngs::StdRng> {
++    let param_number = found_notes.len();
++    let solverPSO = ParticleSwarm::new((vec![0.0; param_number], vec![1.0; param_number]), 40); // TODO it could be bigger than 1.0
++    solverPSO
++}
++
++
++
++
+ pub fn optimize(
+         cache: &note::CachedInstruments,
+         spectrogram_slice: &[Vec<Complex32>],
+@@ -111,9 +145,9 @@ pub fn optimize(
+     // https://github.com/argmin-rs/argmin/blob/main/examples/steepestdescent/src/main.rs
+     // Pick a line search.
+     // let linesearch = HagerZhangLineSearch::new();
+-    let linesearch = MoreThuenteLineSearch::new();
++    //let linesearch = MoreThuenteLineSearch::new();
+     // Set up solver
+-    let solver = SteepestDescent::new(linesearch);
++    //let solver = SteepestDescent::new(linesearch);
+ 
+ /*
+     // set up line search
+@@ -137,16 +171,16 @@ pub fn optimize(
+ */
+     // Define initial parameter vector
+     let init_param: Vec<f32> = vec![0.5; found_notes.len()];
++    let solver = get_pso_solver(found_notes);
+ 
+     let res = Executor::new(cost_function, solver)
+-        .configure(|state| state.param(init_param).max_iters(80))
++        .configure(|state| state.max_iters(200))
+ //        .configure(|state| state.param(init_param).max_iters(80).target_cost(0.0))
+         .add_observer(TracingLogger::new(), ObserverMode::Always).run().unwrap();
+ 
+     // Print Result
+-    debug!("{res}");
+-
+-    let found_positions = &res.state.get_best_param().unwrap();
++    println!("{res}");
++    let found_positions = &res.state.get_best_param().unwrap().position; // PSO
+ 
+     /*
+     let added_spectrogram = note::add_note_spectrograms(found_notes, &found_positions, cache, 1.0);
