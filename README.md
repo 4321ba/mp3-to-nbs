@@ -1,14 +1,8 @@
 # MP3 to NBS
-Guesses the notes inside a noteblock song in wave sound format, and creates an nbs file from it.
+Guesses the notes inside a Note Block song in wave sound format, and creates an nbs file from it.
 
-Work in progress, nothing works as of now.
+Works very well for files generated with [nbswave](https://github.com/OpenNBS/nbswave), but not well for songs with different sources (recordings, old exporter).
 
-# Useful links:
+This is the project for my 6th semester own laboratory, and 7th semester BSc thesis subjects. The documentation for both can be found [here](https://github.com/4321ba/mp3-to-nbs/tree/main/documentation). The thesis represents the current version.
 
-https://crates.io/crates/babycat/0.0.14
-
-https://crates.io/crates/nbs-rs
-
-https://crates.io/crates/spectrum-analyzer/1.2.5
-
-https://phip1611.de/blog/frequency-spectrum-analysis-with-fft-in-rust/
+The testing scripts and test results are in the [Wynncraft Noteblock OST folder](https://github.com/4321ba/mp3-to-nbs/tree/main/Wynncraft_Noteblock_OST), since I used [that dataset](https://github.com/4321ba/Wynncraft_Noteblock_OST) for testing.
