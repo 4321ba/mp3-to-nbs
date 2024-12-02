@@ -1,7 +1,7 @@
 # MP3 to NBS
 Guesses the notes inside a Note Block song in wave sound format, and creates an nbs file from it.
 
-Works very well for files generated with [nbswave](https://github.com/OpenNBS/nbswave), but not well for songs with different sources (recordings, old exporter).
+Works very well for files generated with [nbswave](https://github.com/OpenNBS/nbswave), but not well for songs coming from different sources (recordings, old exporter).
 
 This is the project for my 6th semester own laboratory, and 7th semester BSc thesis subjects. The documentation for both can be found [here](https://github.com/4321ba/mp3-to-nbs/tree/main/documentation). The thesis represents the current version.
 
