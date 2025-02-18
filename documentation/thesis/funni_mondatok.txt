@@ -1,0 +1,3 @@
+Mindhárom hangszerből, amelyik szerepel benne, található 10%-os layer is, amit amennyiben pontosan fel is ismerte volna az optimalizáció, a 15%-os küszöbérték miatt mind eldobásra kerültek.
+
+Ehhez is tartozik két típus, a paraméter ugyanúgy, illetve a gradiens, ami esetemben szintén egy lebegőpontos számok vektora lesz, aminek a hossza szintén az optimalizálandó paraméterek száma.

@@ -1,0 +1,86 @@
+Általános megjegyzések:
+
+Tartalmilag csak 1 kérdés: a költségfüggvény gradiens alapú optimalizálásnál garantált, hogy a megtalált minimum egyben a globális minimum is, vagyis, hogy nem tud beragadni lokális minimumokba? Simán lehet, hogy igen (magukba a számításokba már nem másztam bele), de akkor is érdemes lehet jelezni egy mondattal, hogy erre is figyeltél.
+
+A forrásoknál van, ahol csak egy szám a link, van, ahol a kiírt link a szöveg közepén szerepel, van, ahol a lap alján, és vannak a "hivatalos" hivatkozások ([xy]). Ezeket érdemes lenne átnézned, hogy minél egységesebb legyen, hogy mikor melyik módszert alkalmazod.
+
+Sok helyen van "hogyha", ahol elég lenne, vagy nekem jobban hangzana a "ha" (pl. 28. oldalon "azonban hogyha valaki"). Olyan is van többször, hogy külön kell a "hogy ha", ami más értelmű, mint a "hogyha", ezeket esetleg fusd át.
+
+A "/" használata (több helyen) az és / vagy helyett teljesen érthető és olvasható, de nem tudom, hogy diplomamunkákban mennyire szeretik az ilyesmit, valószínűleg ebbe senki nem fog belekötni.
+
+Konkrét javaslatok:
+
+1. "Note Block mintákat", tudom, hogy ez még a feladatkiírás, de én az első említéskor írnék valamit, hogy mi ez (én sem tudtam).
+7. "általános esetre" -> "feladatra"
+9. "Hogyha" -> "Ha"?
+	 "Többféleképpen is lehet egy zenét eltárolni ugyanis:" -> "Egy zenét eltárolni ugyanis többféleképpen is lehet:"
+	 "a szóló hangokat" -> "az egyes hanngokat"? Magyarban a "szóló" inkább arra szokott vonatkozni, hogy az adott hang egyedül szól.
+10. "automatán" -> "automata módon" vagy "automatikusan"?
+11. "régi játékverzióval jobb a játékélmény, mint újjal" -> "egy régi játékverzióval jobb a játékélmény, mint egy újjal" (vagy "újabbal")	
+	"masszívan többjátékos online szerepjáték" ->, az MMORPG magyarul inkább "nagyon sok szereplős online szerepjáték": https://hu.wikipedia.org/wiki/MMORPG
+	"több zenének is 100 000 fölötti a megtekintése" - hol?
+12. "és a lecsengés pedig fix" -> "a lecsengés pedig fix"
+13. "könyvtárakat, és a tervezett architektúrát" - nem kell vessző
+	"nem találtam cikket, sem programot" -> "sem cikket, sem programot", vagy "cikket vagy programot"
+	"Ezek viszont egyike sem kapcsolódik" -> "Viszont ezek egyike sem kapcsolódik"
+	"a kettő manapság legelterjedtebbet" -> "két"?
+	"komlexebb" -> "komplexebb"
+	"Az első hátrány, amit az NMF ellen felsoroltak" - itt kicsit fura az "első" vs. "felsoroltak" (felsorolás az összes hátrányra vonatkozik, a konkrétat inkább "említették" vagy ilyesmi).
+15. "Ezen iromány" - egy tudományos cikkre nem biztos, hogy mindenkinek tetszeni fog az "iromány" kifejezés.
+16. "Ez sokban könnyíti" -> "sok tekintetben könnyíti" vagy "nagyban könnyíti"?
+	"felhasználó könnyen képesek" -> "felhasználók könnyen képesek" vagy "felhasználó könnyen képes"
+	"A háttérben Tensorflow-t használ, ami egy Python-os könyvtár gépi tanuláshoz" - maga a TensorFlow nemcsak egy Python könyvtár, hanem egy összetett machine learning szoftverkönyvtár, aminek van Python megvalósítása is, de mi pl C++-szal használjuk (a TFLite-ot).
+	"67%-os hangszintű F1-értéket ért el" - itt jó lenne megemlíteni, hogy mit jelent az F1 érték (én nem tudom).
+	"egyéb opciókkal variálás" - a "kísérletezés" vagy "finomhangolás" kicsit tudományosabban hangzana. :)
+	"Mivel nekem először fog kelleni felismerni" -> "előbb fog kelleni"?
+18. "Összehasonlították a módszert"	- mivel? Vagy inkább "kiértékelték"?
+	"fel sikerült ismerni" -> "sikerült felismerni"?
+	"sokban hasonlít" - itt is inkább "sok teikntetben" vagy "nagyban"
+20. "mennyi hangot tegyen be" -> "hány hangot tegyen be"?
+21. "A C ábra így az apróbb részleteket jobban felismeri" - biztos, hogy nem az ábra az, aki felismeri. :)
+23. "hangokat, és a spektrogramot" - nem kell vessző.
+	"csökkenteni a hosszát" -> "hosszukat"
+	"találhatók linkek a megadott, projekthez tartozó GitHub repository-ban" - itt lehet, hogy jó lenne egy "10" a lap alján lévő linkre mutatva.
+24. "ilyesmi spektrogramot"	-> "hasonló jellegű spektrogramokat"?
+26. "ugyanazt a hullámformátumú fájlt, mint amit fentebb" - elég az "amit"
+27. "Ez egy Java-ban írt Minecraft módosításból áll, a Forge nevű módosításbetöltő keretrendszert használja, illetve Python nyelven írt feldolgozó szkriptekből." - ez egy kicsit fura, itt a középső mondatrész elejéről talán hiányzik egy "ami".
+	"Comma Separated Value" -> "Comma-Separated Values"
+28. "de van aminek"	-> "de van, aminek"
+29. "azáltal generált zenék" - szerintem inkább "az által" vagy "általa".
+30. "a szokásos folyamatot használom" -> "alkalmazom"?
+31. "korábbi Minecraft verzióban" -> "verziókban"?
+32. "a felvételben előfordulhat lag" - a "lag" szerintem gamer / IT szleng, inkább "késleltetésből adódó hiba", "elcsúszás" vagy ilyesmi kéne szerintem.
+	"olyan frekvenciák megjelenésével, ami az eredeti zenében nem volt" -> "amik az eredeti zenében nem voltak"
+33. "az egyenlő felosztás 12-edik gyököt jelent" -> "12-edik gyöknyi egységű felosztás jelent" vagy "12-edik gyökönkénti felosztás jelent"?
+37. "könnyen használható, szimpla, egyszerű Rust könyvtárat." - itt a "szimpla" és az "egyszerű" ugyanaz.
+	"események érzékelésére, és ritmus meghatározására is használható" - nem kell vessző.
+38. "keresünk egy olyan kombinációt, hogyha az összes hang a paraméter által adott hangerején együtt szól" -> "hogy ha"
+	"lehető legközelebb lesz" -> talán "legyen"?
+	"A hibafüggvény a következőből áll" -> "következőkből"?
+41. "típusinformációknak is rendelkezésre kell állni" -> "állniuk"?
+	"pedig nekem szükségem volt" - "nekem pedig szükségem volt" (mivel nem ezért nem tették elérhetővé :) )
+	"A megoldás az az FFT könyvtár" - elég egy "az"
+42. "a parancssori argumentumok parszolásához" - a "parszolás" nem tudom, mennyire épült már be magyar szóként (lehet, hogy igen).
+43. "azaz 2 dimenziós, komplexek" - itt kell vessző?
+	"mondja meg, hogy mennyi mintával toljuk arrébb az egészet" -> "hány mintával"
+44. "viszont a mély hangoknál meg már" - talán elég a "már".
+	"Azért az 1024-re esett a választásom, mivel" -> "azért...mert", vagy "azért" nélkül "mivel".
+	"A modulban található még ... algoritmusok" -> "találhatóak"
+45. "Az volt az elképzelésem, hogyha itt szimulálom" -> "hogy ha"
+47. "igazából két külön típus, és emiatt összekevertem őket" - erre van még olyan módszer is, hogy a "Note"-nál egyedibb típusneveket használsz. :)
+48. "az első onset rögtön a 0. mintánál fog történni" - lehet "0-s minta", "0 indexű minta", de a "nulladik" sorszámnévként nekem nem az igazi.
+	"hogy mennyi esetben találta el" -> "hány esetben"
+	"de a számára kiemelkedően fontos" - szerintem nem kell "a".
+49. "a csendesebben szóló hangot is felismerjen" -> "a csendesebben szóló hangot is felismerje" vagy "csendesebben szóló hangot is felismerjen"
+52. "A fentebbi formulában" -> "fenti"?
+53. "egy lebegőpontos számok vektora lesz" - nekem jobban hangzik, hogy "egy lebegőpontos számokból álló vektor" vagy "lebegőpontos számok vektora".
+	"a gradienset meghatározó" -> "gradienst"
+54. Itt is van egy "parszolás"
+58. "Ebben a félévben, mivel elérhető a derivált, a Steepest descent-tel, illetve a Nonlinear conjugate gradient módszerrel is megismerkedek" - ha jól értem, ez most már lehetne múlt idő, hogy megismerkedtél, nem?
+59. "a hangerőhiba, és a felismerés szinte tökéletes" - nem kell vessző.
+60. "a felismerésből, és az összehasonlításból" - itt sem.
+62. a "Mindhárom hangszerből, amelyik szerepel benne" kezdetű mondat nekem kicsit zavaros, mindenesetre az "amit" és a végén a "kerültek" szerintem nincs szinkronban.
+66. "Az eddig elérhető automatizált módszer" - sikerült megértenem a mondatot, de nem elsőre :), lehet, hogy egyszerűbben érthető lenne egy "automatizált módszer két lépésből áll:" bevezetéssel pl.
+70. "Feltérképeztük ... megpróbáltam" - legalább egy mondaton belül szerintem hozd szinkronba azt, hogy hányan voltál (vagy voltatok). :)
+	"az eddig elérhetőnél jóval jobb" -> "sokkal jobb"?
+	

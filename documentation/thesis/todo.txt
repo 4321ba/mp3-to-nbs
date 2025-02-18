@@ -1,6 +1,0 @@
-Teendők:
-nyelvtani korrekció, TODO-k kiszedése (, code cleanup)
-elküldeni átnézni sok embernek
-elolvasni még egyszer a teendőket a honlapon, szakdogasablonban, értékelési útmutatóban stb..., feladatkiírásnak megfelel-e
-
-végén még egy nyelvtani korrekció
